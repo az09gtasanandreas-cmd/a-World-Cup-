@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// ─── TODOS LOS EQUIPOS (sin duplicados) ───────────────────────────────────────
+// ─── EQUIPOS ──────────────────────────────────────────────────────────────────
 const TEAMS = {
   MEX:{name:'México',emoji:'🇲🇽'},       RSA:{name:'Sudáfrica',emoji:'🇿🇦'},
   KOR:{name:'Corea del Sur',emoji:'🇰🇷'}, CZE:{name:'Chequia',emoji:'🇨🇿'},
@@ -28,81 +28,190 @@ const TEAMS = {
   COL:{name:'Colombia',emoji:'🇨🇴'},       UZB:{name:'Uzbekistán',emoji:'🇺🇿'},
 };
 
-// ─── FIXTURE OFICIAL (72 partidos fase de grupos) ─────────────────────────────
+// ─── FIXTURE (72 partidos) ────────────────────────────────────────────────────
 const ALL_MATCHES_DATA = [
-  {id:1, home:'MEX',away:'RSA', group:'Grupo A',dateLabel:'Jue 11 Jun',timeET:'15:00',kickoffUTC:'2026-06-11T19:00:00Z',stadium:'Ciudad de México (Azteca)'},
-  {id:2, home:'KOR',away:'CZE', group:'Grupo A',dateLabel:'Jue 11 Jun',timeET:'22:00',kickoffUTC:'2026-06-12T02:00:00Z',stadium:'Guadalajara (Akron)'},
-  {id:3, home:'CAN',away:'BIH', group:'Grupo B',dateLabel:'Vie 12 Jun',timeET:'15:00',kickoffUTC:'2026-06-12T19:00:00Z',stadium:'Toronto (BMO Field)'},
-  {id:4, home:'USA',away:'PAR', group:'Grupo D',dateLabel:'Vie 12 Jun',timeET:'21:00',kickoffUTC:'2026-06-13T01:00:00Z',stadium:'Los Ángeles (SoFi)'},
-  {id:5, home:'QAT',away:'SUI', group:'Grupo B',dateLabel:'Sáb 13 Jun',timeET:'15:00',kickoffUTC:'2026-06-13T19:00:00Z',stadium:"San Francisco (Levi's)"},
-  {id:6, home:'BRA',away:'MAR', group:'Grupo C',dateLabel:'Sáb 13 Jun',timeET:'18:00',kickoffUTC:'2026-06-13T22:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
-  {id:7, home:'HAI',away:'SCO', group:'Grupo C',dateLabel:'Sáb 13 Jun',timeET:'21:00',kickoffUTC:'2026-06-14T01:00:00Z',stadium:'Boston (Gillette)'},
-  {id:8, home:'AUS',away:'TUR', group:'Grupo D',dateLabel:'Dom 14 Jun',timeET:'00:00',kickoffUTC:'2026-06-14T04:00:00Z',stadium:'Vancouver (BC Place)'},
-  {id:9, home:'GER',away:'CUR', group:'Grupo E',dateLabel:'Dom 14 Jun',timeET:'13:00',kickoffUTC:'2026-06-14T17:00:00Z',stadium:'Houston (NRG)'},
-  {id:10,home:'NED',away:'JPN', group:'Grupo F',dateLabel:'Dom 14 Jun',timeET:'16:00',kickoffUTC:'2026-06-14T20:00:00Z',stadium:'Dallas (AT&T)'},
-  {id:11,home:'CIV',away:'ECU', group:'Grupo E',dateLabel:'Dom 14 Jun',timeET:'19:00',kickoffUTC:'2026-06-14T23:00:00Z',stadium:'Philadelphia (Lincoln)'},
-  {id:12,home:'SWE',away:'TUN', group:'Grupo F',dateLabel:'Dom 14 Jun',timeET:'22:00',kickoffUTC:'2026-06-15T02:00:00Z',stadium:'Monterrey (BBVA)'},
-  {id:13,home:'ESP',away:'CPV', group:'Grupo H',dateLabel:'Lun 15 Jun',timeET:'12:00',kickoffUTC:'2026-06-15T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
-  {id:14,home:'BEL',away:'EGY', group:'Grupo G',dateLabel:'Lun 15 Jun',timeET:'15:00',kickoffUTC:'2026-06-15T19:00:00Z',stadium:'Seattle (Lumen Field)'},
-  {id:15,home:'KSA',away:'URU', group:'Grupo H',dateLabel:'Lun 15 Jun',timeET:'18:00',kickoffUTC:'2026-06-15T22:00:00Z',stadium:'Miami (Hard Rock)'},
-  {id:16,home:'IRN',away:'NZL', group:'Grupo G',dateLabel:'Lun 15 Jun',timeET:'21:00',kickoffUTC:'2026-06-16T01:00:00Z',stadium:'Los Ángeles (SoFi)'},
-  {id:17,home:'FRA',away:'SEN', group:'Grupo I',dateLabel:'Mar 16 Jun',timeET:'15:00',kickoffUTC:'2026-06-16T19:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
-  {id:18,home:'IRQ',away:'NOR', group:'Grupo I',dateLabel:'Mar 16 Jun',timeET:'18:00',kickoffUTC:'2026-06-16T22:00:00Z',stadium:'Boston (Gillette)'},
-  {id:19,home:'ARG',away:'DZA', group:'Grupo J',dateLabel:'Mar 16 Jun',timeET:'21:00',kickoffUTC:'2026-06-17T01:00:00Z',stadium:'Kansas City (Arrowhead)'},
-  {id:20,home:'AUT',away:'JOR', group:'Grupo J',dateLabel:'Mié 17 Jun',timeET:'00:00',kickoffUTC:'2026-06-17T04:00:00Z',stadium:"San Francisco (Levi's)"},
-  {id:21,home:'POR',away:'COD', group:'Grupo K',dateLabel:'Mié 17 Jun',timeET:'13:00',kickoffUTC:'2026-06-17T17:00:00Z',stadium:'Houston (NRG)'},
-  {id:22,home:'ENG',away:'CRO', group:'Grupo L',dateLabel:'Mié 17 Jun',timeET:'16:00',kickoffUTC:'2026-06-17T20:00:00Z',stadium:'Dallas (AT&T)'},
-  {id:23,home:'GHA',away:'PAN', group:'Grupo L',dateLabel:'Mié 17 Jun',timeET:'19:00',kickoffUTC:'2026-06-17T23:00:00Z',stadium:'Toronto (BMO Field)'},
-  {id:24,home:'UZB',away:'COL', group:'Grupo K',dateLabel:'Mié 17 Jun',timeET:'22:00',kickoffUTC:'2026-06-18T02:00:00Z',stadium:'Ciudad de México (Azteca)'},
-  {id:25,home:'CZE',away:'RSA', group:'Grupo A',dateLabel:'Jue 18 Jun',timeET:'12:00',kickoffUTC:'2026-06-18T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
-  {id:26,home:'SUI',away:'BIH', group:'Grupo B',dateLabel:'Jue 18 Jun',timeET:'15:00',kickoffUTC:'2026-06-18T19:00:00Z',stadium:'Los Ángeles (SoFi)'},
-  {id:27,home:'CAN',away:'QAT', group:'Grupo B',dateLabel:'Jue 18 Jun',timeET:'18:00',kickoffUTC:'2026-06-18T22:00:00Z',stadium:'Vancouver (BC Place)'},
-  {id:28,home:'MEX',away:'KOR', group:'Grupo A',dateLabel:'Jue 18 Jun',timeET:'21:00',kickoffUTC:'2026-06-19T01:00:00Z',stadium:'Guadalajara (Akron)'},
-  {id:29,home:'TUR',away:'PAR', group:'Grupo D',dateLabel:'Vie 19 Jun',timeET:'00:00',kickoffUTC:'2026-06-19T04:00:00Z',stadium:"San Francisco (Levi's)"},
-  {id:30,home:'USA',away:'AUS', group:'Grupo D',dateLabel:'Vie 19 Jun',timeET:'15:00',kickoffUTC:'2026-06-19T19:00:00Z',stadium:'Seattle (Lumen Field)'},
-  {id:31,home:'SCO',away:'MAR', group:'Grupo C',dateLabel:'Vie 19 Jun',timeET:'18:00',kickoffUTC:'2026-06-19T22:00:00Z',stadium:'Boston (Gillette)'},
-  {id:32,home:'BRA',away:'HAI', group:'Grupo C',dateLabel:'Vie 19 Jun',timeET:'20:30',kickoffUTC:'2026-06-20T00:30:00Z',stadium:'Philadelphia (Lincoln)'},
-  {id:33,home:'NED',away:'SWE', group:'Grupo F',dateLabel:'Sáb 20 Jun',timeET:'13:00',kickoffUTC:'2026-06-20T17:00:00Z',stadium:'Houston (NRG)'},
-  {id:34,home:'GER',away:'CIV', group:'Grupo E',dateLabel:'Sáb 20 Jun',timeET:'16:00',kickoffUTC:'2026-06-20T20:00:00Z',stadium:'Toronto (BMO Field)'},
-  {id:35,home:'ECU',away:'CUR', group:'Grupo E',dateLabel:'Sáb 20 Jun',timeET:'20:00',kickoffUTC:'2026-06-21T00:00:00Z',stadium:'Kansas City (Arrowhead)'},
-  {id:36,home:'TUN',away:'JPN', group:'Grupo F',dateLabel:'Dom 21 Jun',timeET:'00:00',kickoffUTC:'2026-06-21T04:00:00Z',stadium:'Monterrey (BBVA)'},
-  {id:37,home:'ESP',away:'KSA', group:'Grupo H',dateLabel:'Dom 21 Jun',timeET:'12:00',kickoffUTC:'2026-06-21T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
-  {id:38,home:'BEL',away:'IRN', group:'Grupo G',dateLabel:'Dom 21 Jun',timeET:'15:00',kickoffUTC:'2026-06-21T19:00:00Z',stadium:'Los Ángeles (SoFi)'},
-  {id:39,home:'URU',away:'CPV', group:'Grupo H',dateLabel:'Dom 21 Jun',timeET:'18:00',kickoffUTC:'2026-06-21T22:00:00Z',stadium:'Miami (Hard Rock)'},
-  {id:40,home:'NZL',away:'EGY', group:'Grupo G',dateLabel:'Dom 21 Jun',timeET:'21:00',kickoffUTC:'2026-06-22T01:00:00Z',stadium:'Vancouver (BC Place)'},
-  {id:41,home:'ARG',away:'AUT', group:'Grupo J',dateLabel:'Lun 22 Jun',timeET:'13:00',kickoffUTC:'2026-06-22T17:00:00Z',stadium:'Dallas (AT&T)'},
-  {id:42,home:'FRA',away:'IRQ', group:'Grupo I',dateLabel:'Lun 22 Jun',timeET:'17:00',kickoffUTC:'2026-06-22T21:00:00Z',stadium:'Philadelphia (Lincoln)'},
-  {id:43,home:'NOR',away:'SEN', group:'Grupo I',dateLabel:'Lun 22 Jun',timeET:'20:00',kickoffUTC:'2026-06-23T00:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
-  {id:44,home:'JOR',away:'DZA', group:'Grupo J',dateLabel:'Lun 22 Jun',timeET:'23:00',kickoffUTC:'2026-06-23T03:00:00Z',stadium:"San Francisco (Levi's)"},
-  {id:45,home:'POR',away:'UZB', group:'Grupo K',dateLabel:'Mar 23 Jun',timeET:'13:00',kickoffUTC:'2026-06-23T17:00:00Z',stadium:'Houston (NRG)'},
-  {id:46,home:'ENG',away:'GHA', group:'Grupo L',dateLabel:'Mar 23 Jun',timeET:'16:00',kickoffUTC:'2026-06-23T20:00:00Z',stadium:'Boston (Gillette)'},
-  {id:47,home:'PAN',away:'CRO', group:'Grupo L',dateLabel:'Mar 23 Jun',timeET:'19:00',kickoffUTC:'2026-06-23T23:00:00Z',stadium:'Toronto (BMO Field)'},
-  {id:48,home:'COL',away:'COD', group:'Grupo K',dateLabel:'Mar 23 Jun',timeET:'22:00',kickoffUTC:'2026-06-24T02:00:00Z',stadium:'Guadalajara (Akron)'},
-  {id:49,home:'SUI',away:'CAN', group:'Grupo B',dateLabel:'Mié 24 Jun',timeET:'15:00',kickoffUTC:'2026-06-24T19:00:00Z',stadium:'Vancouver (BC Place)'},
-  {id:50,home:'BIH',away:'QAT', group:'Grupo B',dateLabel:'Mié 24 Jun',timeET:'15:00',kickoffUTC:'2026-06-24T19:00:00Z',stadium:'Seattle (Lumen Field)'},
-  {id:51,home:'SCO',away:'BRA', group:'Grupo C',dateLabel:'Mié 24 Jun',timeET:'18:00',kickoffUTC:'2026-06-24T22:00:00Z',stadium:'Miami (Hard Rock)'},
-  {id:52,home:'MAR',away:'HAI', group:'Grupo C',dateLabel:'Mié 24 Jun',timeET:'18:00',kickoffUTC:'2026-06-24T22:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
-  {id:53,home:'CZE',away:'MEX', group:'Grupo A',dateLabel:'Mié 24 Jun',timeET:'21:00',kickoffUTC:'2026-06-25T01:00:00Z',stadium:'Ciudad de México (Azteca)'},
-  {id:54,home:'RSA',away:'KOR', group:'Grupo A',dateLabel:'Mié 24 Jun',timeET:'21:00',kickoffUTC:'2026-06-25T01:00:00Z',stadium:'Monterrey (BBVA)'},
-  {id:55,home:'CUR',away:'CIV', group:'Grupo E',dateLabel:'Jue 25 Jun',timeET:'16:00',kickoffUTC:'2026-06-25T20:00:00Z',stadium:'Philadelphia (Lincoln)'},
-  {id:56,home:'ECU',away:'GER', group:'Grupo E',dateLabel:'Jue 25 Jun',timeET:'16:00',kickoffUTC:'2026-06-25T20:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
-  {id:57,home:'JPN',away:'SWE', group:'Grupo F',dateLabel:'Jue 25 Jun',timeET:'19:00',kickoffUTC:'2026-06-25T23:00:00Z',stadium:'Dallas (AT&T)'},
-  {id:58,home:'TUN',away:'NED', group:'Grupo F',dateLabel:'Jue 25 Jun',timeET:'19:00',kickoffUTC:'2026-06-25T23:00:00Z',stadium:'Kansas City (Arrowhead)'},
-  {id:59,home:'TUR',away:'USA', group:'Grupo D',dateLabel:'Jue 25 Jun',timeET:'22:00',kickoffUTC:'2026-06-26T02:00:00Z',stadium:'Los Ángeles (SoFi)'},
-  {id:60,home:'PAR',away:'AUS', group:'Grupo D',dateLabel:'Jue 25 Jun',timeET:'22:00',kickoffUTC:'2026-06-26T02:00:00Z',stadium:"San Francisco (Levi's)"},
-  {id:61,home:'NOR',away:'FRA', group:'Grupo I',dateLabel:'Vie 26 Jun',timeET:'15:00',kickoffUTC:'2026-06-26T19:00:00Z',stadium:'Boston (Gillette)'},
-  {id:62,home:'SEN',away:'IRQ', group:'Grupo I',dateLabel:'Vie 26 Jun',timeET:'15:00',kickoffUTC:'2026-06-26T19:00:00Z',stadium:'Toronto (BMO Field)'},
-  {id:63,home:'CPV',away:'KSA', group:'Grupo H',dateLabel:'Vie 26 Jun',timeET:'20:00',kickoffUTC:'2026-06-27T00:00:00Z',stadium:'Houston (NRG)'},
-  {id:64,home:'URU',away:'ESP', group:'Grupo H',dateLabel:'Vie 26 Jun',timeET:'20:00',kickoffUTC:'2026-06-27T00:00:00Z',stadium:'Guadalajara (Akron)'},
-  {id:65,home:'EGY',away:'IRN', group:'Grupo G',dateLabel:'Vie 26 Jun',timeET:'23:00',kickoffUTC:'2026-06-27T03:00:00Z',stadium:'Seattle (Lumen Field)'},
-  {id:66,home:'NZL',away:'BEL', group:'Grupo G',dateLabel:'Vie 26 Jun',timeET:'23:00',kickoffUTC:'2026-06-27T03:00:00Z',stadium:'Vancouver (BC Place)'},
-  {id:67,home:'PAN',away:'ENG', group:'Grupo L',dateLabel:'Sáb 27 Jun',timeET:'17:00',kickoffUTC:'2026-06-27T21:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
-  {id:68,home:'CRO',away:'GHA', group:'Grupo L',dateLabel:'Sáb 27 Jun',timeET:'17:00',kickoffUTC:'2026-06-27T21:00:00Z',stadium:'Philadelphia (Lincoln)'},
-  {id:69,home:'COL',away:'POR', group:'Grupo K',dateLabel:'Sáb 27 Jun',timeET:'19:30',kickoffUTC:'2026-06-27T23:30:00Z',stadium:'Miami (Hard Rock)'},
-  {id:70,home:'COD',away:'UZB', group:'Grupo K',dateLabel:'Sáb 27 Jun',timeET:'19:30',kickoffUTC:'2026-06-27T23:30:00Z',stadium:'Atlanta (Mercedes-Benz)'},
-  {id:71,home:'DZA',away:'AUT', group:'Grupo J',dateLabel:'Sáb 27 Jun',timeET:'22:00',kickoffUTC:'2026-06-28T02:00:00Z',stadium:'Kansas City (Arrowhead)'},
-  {id:72,home:'JOR',away:'ARG', group:'Grupo J',dateLabel:'Sáb 27 Jun',timeET:'22:00',kickoffUTC:'2026-06-28T02:00:00Z',stadium:'Dallas (AT&T)'},
+  {id:1,  home:'MEX',away:'RSA', group:'Grupo A',dateLabel:'Jue 11 Jun',timeET:'15:00',kickoffUTC:'2026-06-11T19:00:00Z',stadium:'Ciudad de México (Azteca)'},
+  {id:2,  home:'KOR',away:'CZE', group:'Grupo A',dateLabel:'Jue 11 Jun',timeET:'22:00',kickoffUTC:'2026-06-12T02:00:00Z',stadium:'Guadalajara (Akron)'},
+  {id:3,  home:'CAN',away:'BIH', group:'Grupo B',dateLabel:'Vie 12 Jun',timeET:'15:00',kickoffUTC:'2026-06-12T19:00:00Z',stadium:'Toronto (BMO Field)'},
+  {id:4,  home:'USA',away:'PAR', group:'Grupo D',dateLabel:'Vie 12 Jun',timeET:'21:00',kickoffUTC:'2026-06-13T01:00:00Z',stadium:'Los Ángeles (SoFi)'},
+  {id:5,  home:'QAT',away:'SUI', group:'Grupo B',dateLabel:'Sáb 13 Jun',timeET:'15:00',kickoffUTC:'2026-06-13T19:00:00Z',stadium:"San Francisco (Levi's)"},
+  {id:6,  home:'BRA',away:'MAR', group:'Grupo C',dateLabel:'Sáb 13 Jun',timeET:'18:00',kickoffUTC:'2026-06-13T22:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
+  {id:7,  home:'HAI',away:'SCO', group:'Grupo C',dateLabel:'Sáb 13 Jun',timeET:'21:00',kickoffUTC:'2026-06-14T01:00:00Z',stadium:'Boston (Gillette)'},
+  {id:8,  home:'AUS',away:'TUR', group:'Grupo D',dateLabel:'Dom 14 Jun',timeET:'00:00',kickoffUTC:'2026-06-14T04:00:00Z',stadium:'Vancouver (BC Place)'},
+  {id:9,  home:'GER',away:'CUR', group:'Grupo E',dateLabel:'Dom 14 Jun',timeET:'13:00',kickoffUTC:'2026-06-14T17:00:00Z',stadium:'Houston (NRG)'},
+  {id:10, home:'NED',away:'JPN', group:'Grupo F',dateLabel:'Dom 14 Jun',timeET:'16:00',kickoffUTC:'2026-06-14T20:00:00Z',stadium:'Dallas (AT&T)'},
+  {id:11, home:'CIV',away:'ECU', group:'Grupo E',dateLabel:'Dom 14 Jun',timeET:'19:00',kickoffUTC:'2026-06-14T23:00:00Z',stadium:'Philadelphia (Lincoln)'},
+  {id:12, home:'SWE',away:'TUN', group:'Grupo F',dateLabel:'Dom 14 Jun',timeET:'22:00',kickoffUTC:'2026-06-15T02:00:00Z',stadium:'Monterrey (BBVA)'},
+  {id:13, home:'ESP',away:'CPV', group:'Grupo H',dateLabel:'Lun 15 Jun',timeET:'12:00',kickoffUTC:'2026-06-15T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
+  {id:14, home:'BEL',away:'EGY', group:'Grupo G',dateLabel:'Lun 15 Jun',timeET:'15:00',kickoffUTC:'2026-06-15T19:00:00Z',stadium:'Seattle (Lumen Field)'},
+  {id:15, home:'KSA',away:'URU', group:'Grupo H',dateLabel:'Lun 15 Jun',timeET:'18:00',kickoffUTC:'2026-06-15T22:00:00Z',stadium:'Miami (Hard Rock)'},
+  {id:16, home:'IRN',away:'NZL', group:'Grupo G',dateLabel:'Lun 15 Jun',timeET:'21:00',kickoffUTC:'2026-06-16T01:00:00Z',stadium:'Los Ángeles (SoFi)'},
+  {id:17, home:'FRA',away:'SEN', group:'Grupo I',dateLabel:'Mar 16 Jun',timeET:'15:00',kickoffUTC:'2026-06-16T19:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
+  {id:18, home:'IRQ',away:'NOR', group:'Grupo I',dateLabel:'Mar 16 Jun',timeET:'18:00',kickoffUTC:'2026-06-16T22:00:00Z',stadium:'Boston (Gillette)'},
+  {id:19, home:'ARG',away:'DZA', group:'Grupo J',dateLabel:'Mar 16 Jun',timeET:'21:00',kickoffUTC:'2026-06-17T01:00:00Z',stadium:'Kansas City (Arrowhead)'},
+  {id:20, home:'AUT',away:'JOR', group:'Grupo J',dateLabel:'Mié 17 Jun',timeET:'00:00',kickoffUTC:'2026-06-17T04:00:00Z',stadium:"San Francisco (Levi's)"},
+  {id:21, home:'POR',away:'COD', group:'Grupo K',dateLabel:'Mié 17 Jun',timeET:'13:00',kickoffUTC:'2026-06-17T17:00:00Z',stadium:'Houston (NRG)'},
+  {id:22, home:'ENG',away:'CRO', group:'Grupo L',dateLabel:'Mié 17 Jun',timeET:'16:00',kickoffUTC:'2026-06-17T20:00:00Z',stadium:'Dallas (AT&T)'},
+  {id:23, home:'GHA',away:'PAN', group:'Grupo L',dateLabel:'Mié 17 Jun',timeET:'19:00',kickoffUTC:'2026-06-17T23:00:00Z',stadium:'Toronto (BMO Field)'},
+  {id:24, home:'UZB',away:'COL', group:'Grupo K',dateLabel:'Mié 17 Jun',timeET:'22:00',kickoffUTC:'2026-06-18T02:00:00Z',stadium:'Ciudad de México (Azteca)'},
+  {id:25, home:'CZE',away:'RSA', group:'Grupo A',dateLabel:'Jue 18 Jun',timeET:'12:00',kickoffUTC:'2026-06-18T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
+  {id:26, home:'SUI',away:'BIH', group:'Grupo B',dateLabel:'Jue 18 Jun',timeET:'15:00',kickoffUTC:'2026-06-18T19:00:00Z',stadium:'Los Ángeles (SoFi)'},
+  {id:27, home:'CAN',away:'QAT', group:'Grupo B',dateLabel:'Jue 18 Jun',timeET:'18:00',kickoffUTC:'2026-06-18T22:00:00Z',stadium:'Vancouver (BC Place)'},
+  {id:28, home:'MEX',away:'KOR', group:'Grupo A',dateLabel:'Jue 18 Jun',timeET:'21:00',kickoffUTC:'2026-06-19T01:00:00Z',stadium:'Guadalajara (Akron)'},
+  {id:29, home:'TUR',away:'PAR', group:'Grupo D',dateLabel:'Vie 19 Jun',timeET:'00:00',kickoffUTC:'2026-06-19T04:00:00Z',stadium:"San Francisco (Levi's)"},
+  {id:30, home:'USA',away:'AUS', group:'Grupo D',dateLabel:'Vie 19 Jun',timeET:'15:00',kickoffUTC:'2026-06-19T19:00:00Z',stadium:'Seattle (Lumen Field)'},
+  {id:31, home:'SCO',away:'MAR', group:'Grupo C',dateLabel:'Vie 19 Jun',timeET:'18:00',kickoffUTC:'2026-06-19T22:00:00Z',stadium:'Boston (Gillette)'},
+  {id:32, home:'BRA',away:'HAI', group:'Grupo C',dateLabel:'Vie 19 Jun',timeET:'20:30',kickoffUTC:'2026-06-20T00:30:00Z',stadium:'Philadelphia (Lincoln)'},
+  {id:33, home:'NED',away:'SWE', group:'Grupo F',dateLabel:'Sáb 20 Jun',timeET:'13:00',kickoffUTC:'2026-06-20T17:00:00Z',stadium:'Houston (NRG)'},
+  {id:34, home:'GER',away:'CIV', group:'Grupo E',dateLabel:'Sáb 20 Jun',timeET:'16:00',kickoffUTC:'2026-06-20T20:00:00Z',stadium:'Toronto (BMO Field)'},
+  {id:35, home:'ECU',away:'CUR', group:'Grupo E',dateLabel:'Sáb 20 Jun',timeET:'20:00',kickoffUTC:'2026-06-21T00:00:00Z',stadium:'Kansas City (Arrowhead)'},
+  {id:36, home:'TUN',away:'JPN', group:'Grupo F',dateLabel:'Dom 21 Jun',timeET:'00:00',kickoffUTC:'2026-06-21T04:00:00Z',stadium:'Monterrey (BBVA)'},
+  {id:37, home:'ESP',away:'KSA', group:'Grupo H',dateLabel:'Dom 21 Jun',timeET:'12:00',kickoffUTC:'2026-06-21T16:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
+  {id:38, home:'BEL',away:'IRN', group:'Grupo G',dateLabel:'Dom 21 Jun',timeET:'15:00',kickoffUTC:'2026-06-21T19:00:00Z',stadium:'Los Ángeles (SoFi)'},
+  {id:39, home:'URU',away:'CPV', group:'Grupo H',dateLabel:'Dom 21 Jun',timeET:'18:00',kickoffUTC:'2026-06-21T22:00:00Z',stadium:'Miami (Hard Rock)'},
+  {id:40, home:'NZL',away:'EGY', group:'Grupo G',dateLabel:'Dom 21 Jun',timeET:'21:00',kickoffUTC:'2026-06-22T01:00:00Z',stadium:'Vancouver (BC Place)'},
+  {id:41, home:'ARG',away:'AUT', group:'Grupo J',dateLabel:'Lun 22 Jun',timeET:'13:00',kickoffUTC:'2026-06-22T17:00:00Z',stadium:'Dallas (AT&T)'},
+  {id:42, home:'FRA',away:'IRQ', group:'Grupo I',dateLabel:'Lun 22 Jun',timeET:'17:00',kickoffUTC:'2026-06-22T21:00:00Z',stadium:'Philadelphia (Lincoln)'},
+  {id:43, home:'NOR',away:'SEN', group:'Grupo I',dateLabel:'Lun 22 Jun',timeET:'20:00',kickoffUTC:'2026-06-23T00:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
+  {id:44, home:'JOR',away:'DZA', group:'Grupo J',dateLabel:'Lun 22 Jun',timeET:'23:00',kickoffUTC:'2026-06-23T03:00:00Z',stadium:"San Francisco (Levi's)"},
+  {id:45, home:'POR',away:'UZB', group:'Grupo K',dateLabel:'Mar 23 Jun',timeET:'13:00',kickoffUTC:'2026-06-23T17:00:00Z',stadium:'Houston (NRG)'},
+  {id:46, home:'ENG',away:'GHA', group:'Grupo L',dateLabel:'Mar 23 Jun',timeET:'16:00',kickoffUTC:'2026-06-23T20:00:00Z',stadium:'Boston (Gillette)'},
+  {id:47, home:'PAN',away:'CRO', group:'Grupo L',dateLabel:'Mar 23 Jun',timeET:'19:00',kickoffUTC:'2026-06-23T23:00:00Z',stadium:'Toronto (BMO Field)'},
+  {id:48, home:'COL',away:'COD', group:'Grupo K',dateLabel:'Mar 23 Jun',timeET:'22:00',kickoffUTC:'2026-06-24T02:00:00Z',stadium:'Guadalajara (Akron)'},
+  {id:49, home:'SUI',away:'CAN', group:'Grupo B',dateLabel:'Mié 24 Jun',timeET:'15:00',kickoffUTC:'2026-06-24T19:00:00Z',stadium:'Vancouver (BC Place)'},
+  {id:50, home:'BIH',away:'QAT', group:'Grupo B',dateLabel:'Mié 24 Jun',timeET:'15:00',kickoffUTC:'2026-06-24T19:00:00Z',stadium:'Seattle (Lumen Field)'},
+  {id:51, home:'SCO',away:'BRA', group:'Grupo C',dateLabel:'Mié 24 Jun',timeET:'18:00',kickoffUTC:'2026-06-24T22:00:00Z',stadium:'Miami (Hard Rock)'},
+  {id:52, home:'MAR',away:'HAI', group:'Grupo C',dateLabel:'Mié 24 Jun',timeET:'18:00',kickoffUTC:'2026-06-24T22:00:00Z',stadium:'Atlanta (Mercedes-Benz)'},
+  {id:53, home:'CZE',away:'MEX', group:'Grupo A',dateLabel:'Mié 24 Jun',timeET:'21:00',kickoffUTC:'2026-06-25T01:00:00Z',stadium:'Ciudad de México (Azteca)'},
+  {id:54, home:'RSA',away:'KOR', group:'Grupo A',dateLabel:'Mié 24 Jun',timeET:'21:00',kickoffUTC:'2026-06-25T01:00:00Z',stadium:'Monterrey (BBVA)'},
+  {id:55, home:'CUR',away:'CIV', group:'Grupo E',dateLabel:'Jue 25 Jun',timeET:'16:00',kickoffUTC:'2026-06-25T20:00:00Z',stadium:'Philadelphia (Lincoln)'},
+  {id:56, home:'ECU',away:'GER', group:'Grupo E',dateLabel:'Jue 25 Jun',timeET:'16:00',kickoffUTC:'2026-06-25T20:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
+  {id:57, home:'JPN',away:'SWE', group:'Grupo F',dateLabel:'Jue 25 Jun',timeET:'19:00',kickoffUTC:'2026-06-25T23:00:00Z',stadium:'Dallas (AT&T)'},
+  {id:58, home:'TUN',away:'NED', group:'Grupo F',dateLabel:'Jue 25 Jun',timeET:'19:00',kickoffUTC:'2026-06-25T23:00:00Z',stadium:'Kansas City (Arrowhead)'},
+  {id:59, home:'TUR',away:'USA', group:'Grupo D',dateLabel:'Jue 25 Jun',timeET:'22:00',kickoffUTC:'2026-06-26T02:00:00Z',stadium:'Los Ángeles (SoFi)'},
+  {id:60, home:'PAR',away:'AUS', group:'Grupo D',dateLabel:'Jue 25 Jun',timeET:'22:00',kickoffUTC:'2026-06-26T02:00:00Z',stadium:"San Francisco (Levi's)"},
+  {id:61, home:'NOR',away:'FRA', group:'Grupo I',dateLabel:'Vie 26 Jun',timeET:'15:00',kickoffUTC:'2026-06-26T19:00:00Z',stadium:'Boston (Gillette)'},
+  {id:62, home:'SEN',away:'IRQ', group:'Grupo I',dateLabel:'Vie 26 Jun',timeET:'15:00',kickoffUTC:'2026-06-26T19:00:00Z',stadium:'Toronto (BMO Field)'},
+  {id:63, home:'CPV',away:'KSA', group:'Grupo H',dateLabel:'Vie 26 Jun',timeET:'20:00',kickoffUTC:'2026-06-27T00:00:00Z',stadium:'Houston (NRG)'},
+  {id:64, home:'URU',away:'ESP', group:'Grupo H',dateLabel:'Vie 26 Jun',timeET:'20:00',kickoffUTC:'2026-06-27T00:00:00Z',stadium:'Guadalajara (Akron)'},
+  {id:65, home:'EGY',away:'IRN', group:'Grupo G',dateLabel:'Vie 26 Jun',timeET:'23:00',kickoffUTC:'2026-06-27T03:00:00Z',stadium:'Seattle (Lumen Field)'},
+  {id:66, home:'NZL',away:'BEL', group:'Grupo G',dateLabel:'Vie 26 Jun',timeET:'23:00',kickoffUTC:'2026-06-27T03:00:00Z',stadium:'Vancouver (BC Place)'},
+  {id:67, home:'PAN',away:'ENG', group:'Grupo L',dateLabel:'Sáb 27 Jun',timeET:'17:00',kickoffUTC:'2026-06-27T21:00:00Z',stadium:'Nueva York/NJ (MetLife)'},
+  {id:68, home:'CRO',away:'GHA', group:'Grupo L',dateLabel:'Sáb 27 Jun',timeET:'17:00',kickoffUTC:'2026-06-27T21:00:00Z',stadium:'Philadelphia (Lincoln)'},
+  {id:69, home:'COL',away:'POR', group:'Grupo K',dateLabel:'Sáb 27 Jun',timeET:'19:30',kickoffUTC:'2026-06-27T23:30:00Z',stadium:'Miami (Hard Rock)'},
+  {id:70, home:'COD',away:'UZB', group:'Grupo K',dateLabel:'Sáb 27 Jun',timeET:'19:30',kickoffUTC:'2026-06-27T23:30:00Z',stadium:'Atlanta (Mercedes-Benz)'},
+  {id:71, home:'DZA',away:'AUT', group:'Grupo J',dateLabel:'Sáb 27 Jun',timeET:'22:00',kickoffUTC:'2026-06-28T02:00:00Z',stadium:'Kansas City (Arrowhead)'},
+  {id:72, home:'JOR',away:'ARG', group:'Grupo J',dateLabel:'Sáb 27 Jun',timeET:'22:00',kickoffUTC:'2026-06-28T02:00:00Z',stadium:'Dallas (AT&T)'},
 ];
+
+// ─── MARCADORES REALES (fase de grupos completa) ──────────────────────────────
+// Fuente: CBS Sports / Yahoo Sports / UEFA.com / FourFourTwo – 2 Jul 2026
+const REAL_SCORES = {
+  // id: [scoreHome, scoreAway]
+  // ── Grupo A ──
+  1:  [2, 0],  // MEX 2-0 RSA
+  2:  [2, 1],  // KOR 2-1 CZE  (Chequia iba 1-0, Corea remontó)
+  25: [1, 1],  // CZE 1-1 RSA
+  28: [1, 0],  // MEX 1-0 KOR
+  53: [0, 3],  // CZE 0-3 MEX
+  54: [1, 0],  // RSA 1-0 KOR
+  // ── Grupo B ──
+  3:  [1, 1],  // CAN 1-1 BIH
+  5:  [1, 1],  // QAT 1-1 SUI
+  26: [4, 1],  // SUI 4-1 BIH
+  27: [6, 0],  // CAN 6-0 QAT
+  49: [3, 1],  // SUI 3-1 CAN   (Switzerland 3-1)
+  50: [3, 1],  // BIH 3-1 QAT
+  // ── Grupo C ──
+  6:  [1, 1],  // BRA 1-1 MAR
+  7:  [0, 1],  // HAI 0-1 SCO
+  31: [0, 1],  // SCO 0-1 MAR
+  32: [3, 0],  // BRA 3-0 HAI
+  51: [0, 3],  // SCO 0-3 BRA
+  52: [4, 2],  // MAR 4-2 HAI
+  // ── Grupo D ──
+  4:  [4, 1],  // USA 4-1 PAR
+  8:  [0, 2],  // AUS 0-2 TUR  → Türkiye 2-0 Australia
+  29: [0, 1],  // TUR 0-1 PAR
+  30: [2, 0],  // USA 2-0 AUS
+  59: [3, 2],  // TUR 3-2 USA
+  60: [0, 0],  // PAR 0-0 AUS
+  // ── Grupo E ──
+  9:  [7, 1],  // GER 7-1 CUR
+  11: [1, 0],  // CIV 1-0 ECU
+  34: [2, 1],  // GER 2-1 CIV
+  35: [0, 0],  // ECU 0-0 CUR
+  55: [0, 2],  // CUR 0-2 CIV
+  56: [2, 1],  // ECU 2-1 GER
+  // ── Grupo F ──
+  10: [2, 2],  // NED 2-2 JPN
+  12: [5, 1],  // SWE 5-1 TUN
+  33: [5, 1],  // NED 5-1 SWE
+  36: [0, 4],  // TUN 0-4 JPN
+  57: [1, 1],  // JPN 1-1 SWE
+  58: [1, 3],  // TUN 1-3 NED
+  // ── Grupo G ──
+  14: [1, 1],  // BEL 1-1 EGY
+  16: [2, 2],  // IRN 2-2 NZL
+  38: [0, 0],  // BEL 0-0 IRN
+  40: [1, 3],  // NZL 1-3 EGY  → Egypt 3-1 New Zealand
+  65: [1, 1],  // EGY 1-1 IRN
+  66: [1, 5],  // NZL 1-5 BEL
+  // ── Grupo H ──
+  13: [0, 0],  // ESP 0-0 CPV
+  15: [1, 1],  // KSA 1-1 URU
+  37: [4, 0],  // ESP 4-0 KSA
+  39: [2, 2],  // URU 2-2 CPV
+  63: [0, 0],  // CPV 0-0 KSA
+  64: [0, 1],  // URU 0-1 ESP
+  // ── Grupo I ──
+  17: [3, 1],  // FRA 3-1 SEN
+  18: [1, 4],  // IRQ 1-4 NOR  → Norway 4-1 Iraq
+  42: [3, 0],  // FRA 3-0 IRQ
+  43: [3, 2],  // NOR 3-2 SEN
+  61: [1, 4],  // NOR 4-1 FRA  → Norway 4 France 1
+  62: [5, 0],  // SEN 5-0 IRQ
+  // ── Grupo J ──
+  19: [3, 0],  // ARG 3-0 DZA
+  20: [3, 1],  // AUT 3-1 JOR
+  41: [2, 0],  // ARG 2-0 AUT
+  44: [1, 2],  // JOR 1-2 DZA
+  71: [3, 3],  // DZA 3-3 AUT
+  72: [1, 3],  // JOR 1-3 ARG
+  // ── Grupo K ──
+  21: [1, 1],  // POR 1-1 COD
+  24: [1, 3],  // UZB 1-3 COL
+  45: [5, 0],  // POR 5-0 UZB
+  48: [1, 0],  // COL 1-0 COD
+  69: [0, 0],  // COL 0-0 POR
+  70: [3, 1],  // COD 3-1 UZB
+  // ── Grupo L ──
+  22: [4, 2],  // ENG 4-2 CRO
+  23: [1, 0],  // GHA 1-0 PAN
+  46: [0, 0],  // ENG 0-0 GHA
+  47: [0, 1],  // PAN 0-1 CRO
+  67: [0, 2],  // PAN 0-2 ENG
+  68: [2, 1],  // CRO 2-1 GHA
+};
+
+// ─── STATUS BASADO EN RELOJ REAL ──────────────────────────────────────────────
+function getMatchStatus(kickoffUTC, now) {
+  const ko = new Date(kickoffUTC);
+  const elapsedMin = Math.floor((now - ko) / 60000);
+  if (elapsedMin < 0)   return { status: 'scheduled', minute: 0 };
+  if (elapsedMin < 97)  return { status: 'live',      minute: Math.min(90, elapsedMin) };
+  return                       { status: 'finished',   minute: 90 };
+}
+
+function buildMatches(now) {
+  return ALL_MATCHES_DATA.map(m => {
+    const { status, minute } = getMatchStatus(m.kickoffUTC, now);
+    const score = REAL_SCORES[m.id];
+    const scoreHome = score ? score[0] : 0;
+    const scoreAway = score ? score[1] : 0;
+    return { ...m, status, minute, scoreHome, scoreAway, events: [] };
+  });
+}
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 const AVATARS = ['⚽','🏆','🦅','🐉','🔥','⚡','🦁','🌟','🎯','💎','🦊','🦋','🐺','🏅','🎪','🌊'];
@@ -117,11 +226,11 @@ const BANNERS = [
   {id:'b8',style:'linear-gradient(135deg,#fbbf24,#f97316)'},
 ];
 const TITLES = ['Rookie','Apostador','Pro Bet','Shark','Legend','El Patrón','Cyber God'];
-const CURRENCY_RATES = {COP:1,USD:0.00025,EUR:0.00023};
-const CURRENCY_SYM   = {COP:'COP $',USD:'USD $',EUR:'EUR €'};
+const CURRENCY_RATES = {COP:1, USD:0.00025, EUR:0.00023};
+const CURRENCY_SYM   = {COP:'COP $', USD:'USD $', EUR:'EUR €'};
 const ENTRY_FEE = 150;
 const NAV = [
-  {id:'live',    label:'En Vivo',icon:'⚡'},
+  {id:'live',    label:'En Vivo', icon:'⚡'},
   {id:'calendar',label:'Fixture', icon:'📅'},
   {id:'album',   label:'Álbum',   icon:'🃏'},
   {id:'bets',    label:'Mis Bets',icon:'🎯'},
@@ -155,20 +264,12 @@ const ALL_CARDS=Array.from({length:900},(_,i)=>{
 const CARDS_BY_TEAM={};
 TEAM_CODES.forEach(c=>{CARDS_BY_TEAM[c]=ALL_CARDS.filter(x=>x.team===c);});
 
-// ─── ESTADO INICIAL DE PARTIDOS ───────────────────────────────────────────────
-function buildMatches(){
-  const now=new Date();
-  return ALL_MATCHES_DATA.map(m=>{
-    const ko=new Date(m.kickoffUTC);
-    const el=Math.floor((now-ko)/60000);
-    const status=el>=97?'finished':el>=0?'live':'scheduled';
-    const minute=status==='live'?Math.min(90,el):status==='finished'?90:0;
-    return{...m,status,minute,scoreHome:0,scoreAway:0,events:[],apiLoaded:false};
-  });
-}
+// ─── API football-data.org ────────────────────────────────────────────────────
+const FD_KEY = '88d0f6ff95bd3fa29181f99f6bf88255';
+const FD_URL = 'https://api.football-data.org/v4/competitions/WC/matches';
 
-// ─── FIFA API MAP ─────────────────────────────────────────────────────────────
-const API_NAME_MAP={
+// Mapeo nombre API → código interno
+const API_NAME_MAP = {
   'Mexico':'MEX','South Africa':'RSA','South Korea':'KOR','Czech Republic':'CZE','Czechia':'CZE',
   'Canada':'CAN','Bosnia and Herzegovina':'BIH','USA':'USA','United States':'USA','Paraguay':'PAR',
   'Qatar':'QAT','Switzerland':'SUI','Brazil':'BRA','Morocco':'MAR','Haiti':'HAI','Scotland':'SCO',
@@ -182,85 +283,128 @@ const API_NAME_MAP={
   'Colombia':'COL','Uruguay':'URU',
 };
 
-// ─── HOOKS ────────────────────────────────────────────────────────────────────
-function useCountdown(){
-  const target=new Date('2026-06-11T19:00:00Z');
-  const [now,setNow]=useState(new Date());
-  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t);},[]);
-  const diff=target-now;
-  if(diff<=0)return{isOver:true,days:0,hours:0,minutes:0,seconds:0};
-  return{isOver:false,days:Math.floor(diff/86400000),hours:Math.floor((diff%86400000)/3600000),
-    minutes:Math.floor((diff%3600000)/60000),seconds:Math.floor((diff%60000)/1000)};
-}
-
-async function fetchLiveScores(){
-  try{
-    const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://api.football-data.org/v4/competitions/WC/matches?status=IN_PLAY'));
-    if(!r.ok)throw new Error();
-    const d=await r.json();return d.matches||[];
-  }catch{return[];}
-}
-
-function useLiveMatches(){
-  const [matches,setMatches]=useState(buildMatches);
-  const [connecting,setConnecting]=useState(true);
-
-  // Polling API real cada 30s
-  useEffect(()=>{
-    let cancelled=false;
-    async function poll(){
-      const live=await fetchLiveScores();
-      if(cancelled)return;
-      setConnecting(false);
-      if(live.length>0){
-        setMatches(prev=>prev.map(m=>{
-          const am=live.find(x=>{
-            const h=API_NAME_MAP[x.homeTeam?.name]||x.homeTeam?.tla;
-            const a=API_NAME_MAP[x.awayTeam?.name]||x.awayTeam?.tla;
-            return h===m.home&&a===m.away;
-          });
-          if(!am)return m;
-          const st=am.status;
-          const sh=am.score?.fullTime?.home??am.score?.halfTime?.home??m.scoreHome;
-          const sa=am.score?.fullTime?.away??am.score?.halfTime?.away??m.scoreAway;
-          const min=am.minute??m.minute;
-          let status=m.status;
-          if(st==='IN_PLAY'||st==='PAUSED')status='live';
-          if(st==='FINISHED')status='finished';
-          const evs=[...m.events];
-          if(sh>m.scoreHome)evs.push({text:`⚽ ${min}' GOL de ${TEAMS[m.home]?.name}!`});
-          if(sa>m.scoreAway)evs.push({text:`⚽ ${min}' GOL de ${TEAMS[m.away]?.name}!`});
-          return{...m,status,scoreHome:sh,scoreAway:sa,minute:min,events:evs.slice(-5),apiLoaded:true};
-        }));
-      }
+async function fetchFromAPI() {
+  try {
+    // Intento directo (funciona si hay CORS en el plan o desde servidor)
+    const r = await fetch(FD_URL, {
+      headers: { 'X-Auth-Token': FD_KEY }
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    return d.matches || [];
+  } catch {
+    // Fallback: proxy CORS público
+    try {
+      const proxy = `https://corsproxy.io/?url=${encodeURIComponent(FD_URL)}`;
+      const r = await fetch(proxy, {
+        headers: { 'X-Auth-Token': FD_KEY }
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = await r.json();
+      return d.matches || [];
+    } catch {
+      return [];
     }
-    poll();
-    const t=setInterval(poll,30000);
-    return()=>{cancelled=true;clearInterval(t);};
-  },[]);
+  }
+}
 
-  // Reloj cada 30s: activa/finaliza por hora real, actualiza minuto
-  useEffect(()=>{
-    const t=setInterval(()=>{
-      const now=new Date();
-      setMatches(prev=>prev.map(m=>{
-        const ko=new Date(m.kickoffUTC);
-        const el=Math.floor((now-ko)/60000);
-        if(m.status==='scheduled'&&el>=0&&el<97)
-          return{...m,status:'live',minute:Math.max(1,el),
-            events:[{text:`🏁 ¡PITAZO INICIAL! ${TEAMS[m.home]?.name} vs ${TEAMS[m.away]?.name}`}]};
-        if(m.status==='live'&&el>=97)
-          return{...m,status:'finished',minute:90,
-            events:[...m.events,{text:`🏁 FIN · ${TEAMS[m.home]?.name} ${m.scoreHome}–${m.scoreAway} ${TEAMS[m.away]?.name}`}].slice(-5)};
-        if(m.status==='live'&&!m.apiLoaded)
-          return{...m,minute:Math.min(90,el>0?el:m.minute)};
-        return m;
+// ─── HOOK PARTIDOS (reloj base + API real cada 60s) ──────────────────────────
+function useMatches() {
+  const [matches, setMatches] = useState(() => buildMatches(new Date()));
+  const [apiStatus, setApiStatus] = useState('connecting'); // 'connecting' | 'live' | 'offline'
+
+  // ── Reloj local: actualiza minuto/estado cada 30s ─────────────────────────
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setMatches(prev => prev.map(m => {
+        const { status, minute } = getMatchStatus(m.kickoffUTC, now);
+        let events = [...m.events];
+        if (m.status === 'scheduled' && status === 'live') {
+          events = [{ text: `🏁 ¡PITAZO INICIAL! ${TEAMS[m.home]?.name} vs ${TEAMS[m.away]?.name}` }];
+        }
+        if (m.status === 'live' && status === 'finished') {
+          events = [...events, { text: `🏁 FIN · ${TEAMS[m.home]?.name} ${m.scoreHome}–${m.scoreAway} ${TEAMS[m.away]?.name}` }].slice(-5);
+        }
+        // Solo actualiza minuto si no tenemos dato de API en vivo
+        return { ...m, status, minute: m.apiMinute ?? minute, events };
       }));
-    },30000);
-    return()=>clearInterval(t);
-  },[]);
+    };
+    tick();
+    const t = setInterval(tick, 30000);
+    return () => clearInterval(t);
+  }, []);
 
-  return{matches,connecting};
+  // ── API real: poll cada 60s ───────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    async function poll() {
+      const apiMatches = await fetchFromAPI();
+      if (cancelled) return;
+
+      if (apiMatches.length === 0) {
+        setApiStatus('offline');
+        return;
+      }
+      setApiStatus('live');
+
+      setMatches(prev => prev.map(m => {
+        // Buscar partido equivalente en la respuesta de la API
+        const am = apiMatches.find(x => {
+          const h = API_NAME_MAP[x.homeTeam?.name] || x.homeTeam?.tla;
+          const a = API_NAME_MAP[x.awayTeam?.name] || x.awayTeam?.tla;
+          return h === m.home && a === m.away;
+        });
+        if (!am) return m;
+
+        const apiStatus = am.status; // SCHEDULED, IN_PLAY, PAUSED, FINISHED, etc.
+        const apiSH = am.score?.fullTime?.home ?? am.score?.halfTime?.home;
+        const apiSA = am.score?.fullTime?.away ?? am.score?.halfTime?.away;
+        const sh = (apiSH !== null && apiSH !== undefined) ? apiSH : m.scoreHome;
+        const sa = (apiSA !== null && apiSA !== undefined) ? apiSA : m.scoreAway;
+        const apiMin = am.minute ?? null;
+        let status = m.status;
+        if (apiStatus === 'IN_PLAY' || apiStatus === 'PAUSED') status = 'live';
+        else if (apiStatus === 'FINISHED') status = 'finished';
+        else if (apiStatus === 'SCHEDULED' || apiStatus === 'TIMED') status = 'scheduled';
+
+        // Detectar goles nuevos
+        let events = [...m.events];
+        if (sh > m.scoreHome) events.push({ text: `⚽ GOL de ${TEAMS[m.home]?.name}!` });
+        if (sa > m.scoreAway) events.push({ text: `⚽ GOL de ${TEAMS[m.away]?.name}!` });
+        if (status === 'finished' && m.status !== 'finished') {
+          events.push({ text: `🏁 FIN · ${TEAMS[m.home]?.name} ${sh}–${sa} ${TEAMS[m.away]?.name}` });
+        }
+
+        return {
+          ...m,
+          status,
+          scoreHome: sh ?? 0,
+          scoreAway: sa ?? 0,
+          apiMinute: apiMin,
+          minute: apiMin ?? m.minute,
+          events: events.slice(-5),
+        };
+      }));
+    }
+
+    poll();
+    const t = setInterval(poll, 60000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, []);
+
+  return { matches, apiStatus };
+}
+
+// ─── COUNTDOWN ────────────────────────────────────────────────────────────────
+function useCountdown() {
+  const target = new Date('2026-06-11T19:00:00Z');
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  const diff = target - now;
+  if (diff <= 0) return { isOver: true, days:0, hours:0, minutes:0, seconds:0 };
+  return { isOver:false, days:Math.floor(diff/86400000), hours:Math.floor((diff%86400000)/3600000),
+    minutes:Math.floor((diff%3600000)/60000), seconds:Math.floor((diff%60000)/1000) };
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
@@ -438,7 +582,6 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
   if(screen==='shop')return(
     <div style={{padding:12}}>
       {openingPack&&<PackOpenModal cards={openingPack} onClose={()=>setOpeningPack(null)}/>}
-      {/* Progress */}
       <div style={{background:'#0f172a',border:'1px solid #1e293b',borderRadius:14,padding:'14px 16px',marginBottom:14}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
           <div style={{color:'#a5b4fc',fontSize:11,fontWeight:700,letterSpacing:1}}>📒 ÁLBUM MUNDIAL 2026</div>
@@ -463,7 +606,6 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
           })}
         </div>
       </div>
-      {/* Currency */}
       <div style={{display:'flex',gap:6,marginBottom:12}}>
         {['COP','USD','EUR'].map(c=>(
           <button key={c} onClick={()=>setCurrency(c)} style={{flex:1,background:currency===c?'#6366f1':'#1e293b',
@@ -471,7 +613,6 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
             color:currency===c?'#fff':'#64748b',fontSize:11,fontWeight:700,cursor:'pointer'}}>{c}</button>
         ))}
       </div>
-      {/* Packs */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
         <div style={{background:'linear-gradient(160deg,#1e1b4b,#0f172a)',border:'2px solid #6366f1',borderRadius:16,padding:16,textAlign:'center',boxShadow:'0 0 20px #6366f130'}}>
           <div style={{fontSize:40,marginBottom:4}}>🎴</div>
@@ -500,7 +641,6 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
           <div style={{color:'#334155',fontSize:9,marginTop:8}}>Coins: ⚡{balanceCoins.toLocaleString()}</div>
         </div>
       </div>
-      {/* Probabilidades */}
       <div style={{background:'#0f172a',border:'1px solid #1e293b',borderRadius:12,padding:'10px 14px',marginBottom:12}}>
         <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:8}}>PROBABILIDADES</div>
         <div style={{display:'flex',gap:6}}>
@@ -621,7 +761,6 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
           <div style={{color:'#cbd5e1',fontSize:13,fontWeight:700,marginTop:4}}>{TEAMS[match.home]?.name} – {TEAMS[match.away]?.name}</div>
           {match.status==='live'&&<div style={{color:'#10b981',fontSize:10,marginTop:4}}>● EN VIVO {match.minute}'</div>}
         </div>
-        {/* Pool totals */}
         <div style={{background:'#1e1b4b',border:'1px solid #4f46e550',borderRadius:10,padding:'10px 14px',marginBottom:12}}>
           <div style={{color:'#a5b4fc',fontSize:9,letterSpacing:1,marginBottom:8}}>POZO ACUMULADO 🏆</div>
           <div style={{display:'flex',gap:8}}>
@@ -635,15 +774,12 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
           <div style={{textAlign:'center',marginTop:8,color:'#4ade80',fontSize:12,fontWeight:800}}>
             💰 Total: COP ${(pool.total||0).toLocaleString()}
           </div>
-          <div style={{textAlign:'center',marginTop:3,color:'#475569',fontSize:9}}>¡El ganador se lleva todo el pozo!</div>
         </div>
-        {/* Entry fee */}
         <div style={{background:'#1e1b4b',border:'1px solid #4f46e540',borderRadius:8,
           padding:'8px 12px',marginBottom:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div style={{color:'#a5b4fc',fontSize:10}}>⚡ Entrada: <b style={{color:'#fbbf24'}}>150 Coins</b></div>
           <div style={{color:balanceCoins>=150?'#4ade80':'#ef4444',fontSize:11,fontWeight:700}}>Tu saldo: ⚡{balanceCoins.toLocaleString()}</div>
         </div>
-        {/* Outcome */}
         <div style={{display:'flex',gap:6,marginBottom:10}}>
           {opts.map(o=>(
             <button key={o.key} onClick={()=>setOutcome(o.key)} style={{flex:1,
@@ -653,7 +789,6 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
             </button>
           ))}
         </div>
-        {/* Currency */}
         <div style={{display:'flex',gap:6,marginBottom:10}}>
           {['COP','USD','EUR'].map(c=>(
             <button key={c} onClick={()=>{setCurrency(c);setAmount('');}} style={{flex:1,
@@ -661,7 +796,6 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
               borderRadius:8,padding:'7px 0',color:currency===c?'#fff':'#64748b',fontSize:11,fontWeight:700,cursor:'pointer'}}>{c}</button>
           ))}
         </div>
-        {/* Amount */}
         <div style={{marginBottom:14}}>
           <div style={{position:'relative'}}>
             <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'#6366f1',fontSize:12,fontWeight:700}}>{CURRENCY_SYM[currency]}</span>
@@ -690,16 +824,21 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
 }
 
 // ─── LIVE TAB ─────────────────────────────────────────────────────────────────
-function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceUSD,setBalanceUSD,
+function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUSD,setBalanceUSD,
                   balanceCoins,setBalanceCoins,matchPools,setMatchPools,triggerAlert,profile}){
   const [betModal,setBetModal]=useState(null);
   const [filter,setFilter]=useState('today');
   const {isOver,days,hours,minutes:cMin,seconds}=countdown;
-  const now=new Date();
-  const todayStr=now.toISOString().slice(0,10);
+
+  // Fecha de hoy en UTC
+  const todayStr = new Date().toISOString().slice(0,10);
+
   const liveCount=matches.filter(m=>m.status==='live').length;
+  const finishedCount=matches.filter(m=>m.status==='finished').length;
+
   const visible=matches.filter(m=>{
     if(filter==='live')return m.status==='live';
+    if(filter==='finished')return m.status==='finished';
     if(filter==='today'){
       const mDate=m.kickoffUTC.slice(0,10);
       return mDate===todayStr||m.status==='live';
@@ -715,7 +854,7 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
         setPlacedBets={setPlacedBets} matchPools={matchPools} setMatchPools={setMatchPools}
         triggerAlert={triggerAlert} onClose={()=>setBetModal(null)} profile={profile}/>}
 
-      {/* Countdown */}
+      {/* Countdown si el mundial no arrancó */}
       {!isOver&&(
         <div style={{background:'linear-gradient(135deg,#0f172a,#1e1b4b)',border:'1px solid #4f46e5',
           borderRadius:14,padding:'16px 12px',marginBottom:14,textAlign:'center'}}>
@@ -728,54 +867,87 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
               </div>
             ))}
           </div>
-          <div style={{marginTop:10,color:'#4f46e5',fontSize:10}}>🔒 Apuestas abren al pitazo inicial</div>
         </div>
       )}
 
-      {/* Banner cuando el mundial arrancó */}
+      {/* Banner mundial en curso */}
       {isOver&&(
         <div style={{background:'linear-gradient(135deg,#052e16,#0f172a)',border:'1px solid #10b981',
           borderRadius:12,padding:'10px 14px',marginBottom:10,
           display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div>
-            <div style={{color:'#4ade80',fontWeight:900,fontSize:13}}>⚽ MUNDIAL 2026 EN VIVO</div>
+            <div style={{color:'#4ade80',fontWeight:900,fontSize:13}}>⚽ MUNDIAL 2026 EN CURSO</div>
             <div style={{color:'#6ee7b7',fontSize:9,marginTop:2}}>
-              {liveCount} partido{liveCount!==1?'s':''} activo{liveCount!==1?'s':''} · actualiza cada 30s
+              {liveCount > 0
+                ? `🔴 ${liveCount} partido${liveCount!==1?'s':''} EN VIVO`
+                : `${finishedCount} partidos jugados`
+              }
             </div>
           </div>
-          {connecting&&(
-            <div style={{background:'#1e1b4b',border:'1px solid #4f46e560',borderRadius:8,
-              padding:'3px 8px',color:'#818cf8',fontSize:8,fontWeight:700}}>📡 Conectando...</div>
-          )}
+          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}}>
+            <div style={{background:'#022c22',border:'1px solid #10b98150',borderRadius:8,
+              padding:'4px 10px',textAlign:'center'}}>
+              <div style={{color:'#4ade80',fontSize:10,fontWeight:800}}>{finishedCount}/72</div>
+              <div style={{color:'#064e3b',fontSize:8}}>jugados</div>
+            </div>
+            <div style={{
+              background: apiStatus==='live'?'#052e16': apiStatus==='offline'?'#1a0a0a':'#0f1a2e',
+              border:`1px solid ${apiStatus==='live'?'#10b98150':apiStatus==='offline'?'#ef444450':'#6366f150'}`,
+              borderRadius:6,padding:'2px 7px',display:'flex',alignItems:'center',gap:4}}>
+              <span style={{width:5,height:5,borderRadius:'50%',display:'inline-block',
+                background: apiStatus==='live'?'#10b981': apiStatus==='offline'?'#ef4444':'#6366f1',
+                animation: apiStatus==='connecting'?'dot 1s infinite':undefined}}/>
+              <span style={{fontSize:8,fontWeight:700,
+                color: apiStatus==='live'?'#4ade80': apiStatus==='offline'?'#f87171':'#a5b4fc'}}>
+                {apiStatus==='live'?'API en vivo': apiStatus==='offline'?'Sin API · Reloj local':'Conectando...'}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Filtros */}
       <div style={{display:'flex',gap:6,marginBottom:12}}>
-        {[['live',`🔴 En Vivo${liveCount>0?` (${liveCount})`:''}` ],['today','📅 Hoy'],['all','🌍 Todos']].map(([id,lbl])=>(
+        {[
+          ['live',  `🔴 Vivo${liveCount>0?` (${liveCount})`:''}` ],
+          ['today', '📅 Hoy'],
+          ['finished','✓ Jugados'],
+          ['all',   '🌍 Todos'],
+        ].map(([id,lbl])=>(
           <button key={id} onClick={()=>setFilter(id)} style={{flex:1,
             background:filter===id?'#6366f1':'#0f172a',border:`1px solid ${filter===id?'#818cf8':'#1e293b'}`,
-            borderRadius:8,padding:'6px 0',color:filter===id?'#fff':'#64748b',fontSize:10,fontWeight:700,cursor:'pointer'}}>{lbl}</button>
+            borderRadius:8,padding:'6px 0',color:filter===id?'#fff':'#64748b',fontSize:9,fontWeight:700,cursor:'pointer'}}>{lbl}</button>
         ))}
       </div>
 
       {visible.length===0&&(
         <div style={{textAlign:'center',padding:'32px 16px',color:'#475569',fontSize:12}}>
-          {filter==='live'?'⏳ No hay partidos en vivo ahora mismo.':'No hay partidos para este filtro.'}
+          {filter==='live'?'⏳ No hay partidos en vivo ahora mismo.':
+           filter==='today'?'No hay partidos programados para hoy.':
+           'No hay partidos para este filtro.'}
         </div>
       )}
 
       {visible.map(match=>{
         const ht=TEAMS[match.home]||{name:match.home,emoji:'⚽'};
         const at=TEAMS[match.away]||{name:match.away,emoji:'⚽'};
-        const isLive=match.status==='live',isFinished=match.status==='finished';
+        const isLive=match.status==='live';
+        const isFinished=match.status==='finished';
         const pool=matchPools[match.id]||{total:0};
+
+        // Mostrar minuto real dentro del partido (1er o 2do tiempo)
+        const displayMinute = match.minute <= 45
+          ? `${match.minute}'`
+          : match.minute <= 90
+            ? `${match.minute}' (2T)`
+            : `90'+`;
+
         return(
           <div key={match.id} style={{
             background:isLive?'linear-gradient(180deg,#052e1a,#0f172a)':'#0f172a',
-            border:`1px solid ${isLive?'#10b981':isFinished?'#374151':'#1e293b'}`,
+            border:`1px solid ${isLive?'#10b981':isFinished?'#1e293b33':'#1e293b'}`,
             borderRadius:14,padding:14,marginBottom:10,
-            boxShadow:isLive?'0 0 18px #10b98118':'none'}}>
+            boxShadow:isLive?'0 0 18px #10b98120':'none'}}>
             {/* Header */}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
               <div>
@@ -788,13 +960,22 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
                     borderRadius:99,fontWeight:800,display:'flex',alignItems:'center',gap:4}}>
                     <span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',
                       background:'#fff',animation:'dot 1s infinite'}}/>
-                    {match.minute}'
+                    {displayMinute}
                   </span>
                 )}
-                {isFinished&&<span style={{background:'#374151',color:'#9ca3af',fontSize:9,padding:'2px 8px',borderRadius:99}}>✓ FIN</span>}
-                {!isLive&&!isFinished&&<span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99}}>⏰ {match.timeET} ET</span>}
+                {isFinished&&(
+                  <span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99,fontWeight:700}}>
+                    ✓ FINAL
+                  </span>
+                )}
+                {!isLive&&!isFinished&&(
+                  <span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99}}>
+                    ⏰ {match.timeET} ET
+                  </span>
+                )}
               </div>
             </div>
+
             {/* Score */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{textAlign:'center',flex:1}}>
@@ -803,16 +984,29 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
               </div>
               <div style={{textAlign:'center',padding:'0 8px',minWidth:80}}>
                 {(isLive||isFinished)
-                  ?<div style={{fontSize:32,fontWeight:900,color:'#f1f5f9',letterSpacing:2,lineHeight:1}}>{match.scoreHome}<span style={{color:'#334155'}}> – </span>{match.scoreAway}</div>
-                  :<div style={{fontSize:16,fontWeight:700,color:'#334155'}}>VS</div>}
-                {isLive&&<div style={{color:'#10b981',fontSize:8,marginTop:3,fontWeight:700}}>{match.minute<45?'1ER TIEMPO':'2DO TIEMPO'}</div>}
-                {!isLive&&!isFinished&&<div style={{color:'#475569',fontSize:8,marginTop:4}}>{match.stadium?.split('(')[0]}</div>}
+                  ?<div style={{fontSize:32,fontWeight:900,color:'#f1f5f9',letterSpacing:2,lineHeight:1}}>
+                    {match.scoreHome}<span style={{color:'#334155'}}> – </span>{match.scoreAway}
+                  </div>
+                  :<div style={{fontSize:16,fontWeight:700,color:'#334155'}}>VS</div>
+                }
+                {isLive&&(
+                  <div style={{color:'#10b981',fontSize:8,marginTop:3,fontWeight:700}}>
+                    {match.minute<=45?'1ER TIEMPO':'2DO TIEMPO'}
+                  </div>
+                )}
+                {isFinished&&(
+                  <div style={{color:'#475569',fontSize:8,marginTop:3}}>PARTIDO FINALIZADO</div>
+                )}
+                {!isLive&&!isFinished&&(
+                  <div style={{color:'#475569',fontSize:8,marginTop:4}}>{match.stadium?.split('(')[0].trim()}</div>
+                )}
               </div>
               <div style={{textAlign:'center',flex:1}}>
                 <div style={{fontSize:30}}>{at.emoji}</div>
                 <div style={{color:'#e2e8f0',fontSize:10,fontWeight:700,marginTop:3,maxWidth:80,margin:'3px auto 0',lineHeight:1.2}}>{at.name}</div>
               </div>
             </div>
+
             {/* Pool */}
             {pool.total>0&&(
               <div style={{marginTop:10,background:'#0a0f1e',borderRadius:8,padding:'6px 10px',
@@ -821,7 +1015,8 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
                 <span style={{color:'#fbbf24',fontSize:12,fontWeight:800}}>COP ${pool.total.toLocaleString()}</span>
               </div>
             )}
-            {/* Bet button */}
+
+            {/* Bet button — solo partidos activos o programados */}
             {isOver&&!isFinished&&(
               <button onClick={()=>setBetModal(match)} style={{width:'100%',marginTop:10,
                 background:isLive?'linear-gradient(135deg,#6366f1,#ec4899)':'#1e293b',
@@ -832,7 +1027,8 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
                 <span style={{background:'#00000040',borderRadius:6,padding:'2px 7px',color:'#fbbf24',fontSize:10,fontWeight:700}}>⚡150</span>
               </button>
             )}
-            {/* Events */}
+
+            {/* Eventos */}
             {match.events.slice(-3).map((ev,i)=>(
               <div key={i} style={{marginTop:6,background:'#0a0f1e',borderRadius:6,padding:'4px 8px',fontSize:10,color:'#94a3b8'}}>{ev.text}</div>
             ))}
@@ -844,9 +1040,10 @@ function LiveTab({countdown,matches,connecting,placedBets,setPlacedBets,balanceU
 }
 
 // ─── CALENDAR TAB ─────────────────────────────────────────────────────────────
-function CalendarTab(){
+function CalendarTab({matches}){
   const grouped={};
   ALL_MATCHES_DATA.forEach(m=>{if(!grouped[m.dateLabel])grouped[m.dateLabel]=[];grouped[m.dateLabel].push(m);});
+
   return(
     <div style={{padding:12}}>
       <div style={{color:'#818cf8',fontSize:10,letterSpacing:2,marginBottom:12}}>📅 FIXTURE OFICIAL MUNDIAL 2026</div>
@@ -854,13 +1051,25 @@ function CalendarTab(){
         <div key={date} style={{marginBottom:16}}>
           <div style={{color:'#6366f1',fontSize:11,fontWeight:700,marginBottom:8,borderLeft:'2px solid #6366f1',paddingLeft:8}}>{date}</div>
           {ms.map(m=>{
+            const matchState = matches.find(x=>x.id===m.id);
+            const isLive = matchState?.status==='live';
+            const isFinished = matchState?.status==='finished';
             const ht=TEAMS[m.home]||{name:m.home,emoji:'⚽'};
             const at=TEAMS[m.away]||{name:m.away,emoji:'⚽'};
             return(
-              <div key={m.id} style={{background:'#0f172a',border:'1px solid #1e293b',borderRadius:12,
-                padding:'10px 12px',marginBottom:8,display:'flex',alignItems:'center',gap:12}}>
+              <div key={m.id} style={{background:'#0f172a',
+                border:`1px solid ${isLive?'#10b981':isFinished?'#1e293b33':'#1e293b'}`,
+                borderRadius:12,padding:'10px 12px',marginBottom:8,display:'flex',alignItems:'center',gap:12}}>
                 <div style={{textAlign:'center',minWidth:44}}>
-                  <div style={{color:'#6366f1',fontSize:13,fontWeight:800}}>{m.timeET}</div>
+                  {isLive
+                    ? <div style={{color:'#10b981',fontSize:11,fontWeight:900,display:'flex',alignItems:'center',gap:3}}>
+                        <span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',background:'#10b981',animation:'dot 1s infinite'}}/>
+                        {matchState.minute}'
+                      </div>
+                    : isFinished
+                      ? <div style={{color:'#475569',fontSize:10,fontWeight:700}}>✓ FIN</div>
+                      : <div style={{color:'#6366f1',fontSize:13,fontWeight:800}}>{m.timeET}</div>
+                  }
                   <div style={{color:'#475569',fontSize:8}}>{m.group}</div>
                 </div>
                 <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
@@ -868,7 +1077,12 @@ function CalendarTab(){
                     <span style={{fontSize:18}}>{ht.emoji}</span>
                     <span style={{color:'#e2e8f0',fontSize:11,fontWeight:700}}>{ht.name}</span>
                   </div>
-                  <span style={{color:'#475569',fontSize:10,fontWeight:700}}>VS</span>
+                  {(isLive||isFinished)
+                    ? <span style={{color:'#f1f5f9',fontSize:13,fontWeight:900,letterSpacing:1}}>
+                        {matchState.scoreHome}–{matchState.scoreAway}
+                      </span>
+                    : <span style={{color:'#475569',fontSize:10,fontWeight:700}}>VS</span>
+                  }
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{color:'#e2e8f0',fontSize:11,fontWeight:700}}>{at.name}</span>
                     <span style={{fontSize:18}}>{at.emoji}</span>
@@ -917,7 +1131,6 @@ function BetsTab({placedBets,matchPools}){
             {pool.total>0&&(
               <div style={{marginTop:6,fontSize:10,color:'#64748b'}}>
                 Pozo: <span style={{color:'#4ade80',fontWeight:700}}>COP ${pool.total.toLocaleString()}</span>
-                {bet.status==='won'&&<span style={{color:'#fbbf24',marginLeft:8}}>← ¡TUYO! 🎉</span>}
               </div>
             )}
           </div>
@@ -1092,7 +1305,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
     <div style={{paddingBottom:20}}>
       {showBuy&&<BuyCoinsModal balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
         setBalanceCoins={setBalanceCoins} triggerAlert={triggerAlert} onClose={()=>setShowBuy(false)}/>}
-      {/* Banner */}
       <div style={{position:'relative',height:110,background:banner.style}}>
         <div style={{position:'absolute',bottom:-30,left:16,background:'#0f172a',
           border:'3px solid #0f172a',borderRadius:'50%',width:64,height:64,
@@ -1121,7 +1333,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 </div>
               ))}
             </div>
-            {/* Wallet */}
             <div style={{background:'#0f172a',border:'1px solid #1e293b',borderRadius:12,padding:14,marginBottom:14}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:10}}>MI CARTERA</div>
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
@@ -1133,7 +1344,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 <span style={{color:'#fbbf24',fontSize:12,fontWeight:700}}>⚡{balanceCoins.toLocaleString()}</span>
               </div>
             </div>
-            {/* Buy Coins */}
             <div style={{background:'linear-gradient(135deg,#1e1b4b,#0f172a)',border:'2px solid #6366f1',
               borderRadius:14,padding:14,marginBottom:14}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
@@ -1142,22 +1352,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                   <div style={{color:'#475569',fontSize:9,marginTop:2}}>Para apostar y abrir sobres</div>
                 </div>
                 <div style={{fontSize:24}}>💎</div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
-                {COIN_PACKS.map(p=>(
-                  <div key={p.id} style={{background:'#0a0f1e',border:`1px solid ${p.border}40`,borderRadius:10,
-                    padding:'10px 8px',textAlign:'center',position:'relative'}}>
-                    {p.badge&&<div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',
-                      background:p.color,color:'#000',fontSize:7,fontWeight:900,padding:'1px 8px',borderRadius:99,whiteSpace:'nowrap'}}>{p.badge}</div>}
-                    <div style={{fontSize:22}}>{p.emoji}</div>
-                    <div style={{color:p.color,fontSize:16,fontWeight:900,marginTop:4,lineHeight:1}}>⚡{p.coins.toLocaleString()}</div>
-                    <div style={{color:'#64748b',fontSize:9,marginTop:2}}>Coins</div>
-                    <div style={{marginTop:6}}>
-                      <div style={{color:'#4ade80',fontSize:11,fontWeight:800}}>COP ${p.priceCOP.toLocaleString()}</div>
-                      <div style={{color:'#334155',fontSize:8}}>USD ${p.priceUSD.toFixed(2)} · EUR €{p.priceEUR.toFixed(2)}</div>
-                    </div>
-                  </div>
-                ))}
               </div>
               <button onClick={()=>setShowBuy(true)} style={{width:'100%',
                 background:'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',
@@ -1187,14 +1381,12 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                   padding:'6px 12px',color:'#fff',fontWeight:700,fontSize:11,cursor:'pointer'}}>✕ Cancelar</button>
               </div>
             </div>
-            {/* Username */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:6}}>NOMBRE DE USUARIO</div>
               <input value={draft.username} onChange={e=>setDraft(d=>({...d,username:e.target.value}))}
                 style={{width:'100%',background:'#1e293b',border:'1px solid #334155',borderRadius:10,
                   padding:'11px 14px',color:'#f1f5f9',fontSize:14,fontWeight:700,outline:'none',boxSizing:'border-box'}}/>
             </div>
-            {/* Bio */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:6}}>BIO</div>
               <textarea value={draft.bio} onChange={e=>setDraft(d=>({...d,bio:e.target.value}))}
@@ -1202,7 +1394,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 style={{width:'100%',background:'#1e293b',border:'1px solid #334155',borderRadius:10,
                   padding:'11px 14px',color:'#f1f5f9',fontSize:12,resize:'none',outline:'none',boxSizing:'border-box',fontFamily:'inherit'}}/>
             </div>
-            {/* Avatar */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:8}}>AVATAR</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:6}}>
@@ -1214,7 +1405,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 ))}
               </div>
             </div>
-            {/* Banner */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:8}}>BANNER</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
@@ -1227,7 +1417,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 ))}
               </div>
             </div>
-            {/* Title */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:8}}>TÍTULO</div>
               <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
@@ -1240,7 +1429,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
                 ))}
               </div>
             </div>
-            {/* Fav team */}
             <div style={{marginBottom:12}}>
               <div style={{color:'#64748b',fontSize:9,letterSpacing:1,marginBottom:8}}>EQUIPO FAVORITO</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,maxHeight:160,overflowY:'auto'}}>
@@ -1277,24 +1465,41 @@ export default function App(){
   const [profile,setProfile]=useState({
     username:'Apostador_Pro',avatar:'⚽',bannerId:'b1',bio:'',title:'Rookie',favTeam:'COL',
   });
+
   const countdown=useCountdown();
-  const {matches,connecting}=useLiveMatches();
+  const {matches, apiStatus}=useMatches();
+
   const triggerAlert=useCallback(msg=>{
     if(toastTimer.current)clearTimeout(toastTimer.current);
     setToast(msg);toastTimer.current=setTimeout(()=>setToast(null),3500);
   },[]);
 
+  // Stats rápidas para el header
+  const liveCount=matches.filter(m=>m.status==='live').length;
+
   return(
     <div style={{minHeight:'100vh',background:'#020817',color:'#f1f5f9',
       fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',maxWidth:480,margin:'0 auto',position:'relative'}}>
+      <style>{`@keyframes dot{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
       <Toast msg={toast}/>
+
       {/* Header */}
       <div style={{background:'#0f172a',borderBottom:'1px solid #1e293b',
         padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',
         position:'sticky',top:0,zIndex:100}}>
         <div>
-          <div style={{color:'#818cf8',fontWeight:900,fontSize:17,letterSpacing:1}}>CYBER<span style={{color:'#f1f5f9'}}>APUESTAS</span></div>
-          <div style={{color:'#475569',fontSize:9,marginTop:1}}>Mundial 2026 · Pool Betting</div>
+          <div style={{color:'#818cf8',fontWeight:900,fontSize:17,letterSpacing:1}}>
+            CYBER<span style={{color:'#f1f5f9'}}>APUESTAS</span>
+          </div>
+          <div style={{color:'#475569',fontSize:9,marginTop:1,display:'flex',alignItems:'center',gap:4}}>
+            Mundial 2026 · Pool Betting
+            {liveCount>0&&(
+              <span style={{background:'#10b981',color:'#fff',fontSize:8,padding:'1px 5px',borderRadius:99,fontWeight:800,display:'flex',alignItems:'center',gap:3}}>
+                <span style={{width:4,height:4,borderRadius:'50%',background:'#fff',display:'inline-block',animation:'dot 1s infinite'}}/>
+                {liveCount} VIVO
+              </span>
+            )}
+          </div>
         </div>
         <div style={{display:'flex',gap:8}}>
           <div style={{textAlign:'center'}}>
@@ -1308,27 +1513,34 @@ export default function App(){
           </div>
         </div>
       </div>
+
       {/* Content */}
       <div style={{paddingBottom:72}}>
-        {activeTab==='live'&&<LiveTab countdown={countdown} matches={matches} connecting={connecting}
+        {activeTab==='live'&&<LiveTab
+          countdown={countdown} matches={matches} apiStatus={apiStatus}
           placedBets={placedBets} setPlacedBets={setPlacedBets}
           balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
           balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
           matchPools={matchPools} setMatchPools={setMatchPools}
           triggerAlert={triggerAlert} profile={profile}/>}
-        {activeTab==='calendar'&&<CalendarTab/>}
-        {activeTab==='album'&&<AlbumTab collection={collection} setCollection={setCollection}
+        {activeTab==='calendar'&&<CalendarTab matches={matches}/>}
+        {activeTab==='album'&&<AlbumTab
+          collection={collection} setCollection={setCollection}
           balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
           balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
           triggerAlert={triggerAlert} currency={albumCurrency} setCurrency={setAlbumCurrency}/>}
         {activeTab==='bets'&&<BetsTab placedBets={placedBets} matchPools={matchPools}/>}
-        {activeTab==='cashier'&&<CashierTab balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
-          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins} triggerAlert={triggerAlert}/>}
-        {activeTab==='profile'&&<ProfileTab profile={profile} setProfile={setProfile}
+        {activeTab==='cashier'&&<CashierTab
+          balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
+          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
+          triggerAlert={triggerAlert}/>}
+        {activeTab==='profile'&&<ProfileTab
+          profile={profile} setProfile={setProfile}
           placedBets={placedBets} balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
           balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
           collection={collection} triggerAlert={triggerAlert}/>}
       </div>
+
       {/* Bottom nav */}
       <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',
         width:'100%',maxWidth:480,background:'#0f172a',borderTop:'1px solid #1e293b',display:'flex',zIndex:100}}>
