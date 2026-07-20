@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // ─── EQUIPOS ──────────────────────────────────────────────────────────────────
 const TEAMS = {
@@ -105,93 +105,19 @@ const ALL_MATCHES_DATA = [
 ];
 
 // ─── MARCADORES REALES (fase de grupos completa) ──────────────────────────────
-// Fuente: CBS Sports / Yahoo Sports / UEFA.com / FourFourTwo – 2 Jul 2026
 const REAL_SCORES = {
-  // id: [scoreHome, scoreAway]
-  // ── Grupo A ──
-  1:  [2, 0],  // MEX 2-0 RSA
-  2:  [2, 1],  // KOR 2-1 CZE  (Chequia iba 1-0, Corea remontó)
-  25: [1, 1],  // CZE 1-1 RSA
-  28: [1, 0],  // MEX 1-0 KOR
-  53: [0, 3],  // CZE 0-3 MEX
-  54: [1, 0],  // RSA 1-0 KOR
-  // ── Grupo B ──
-  3:  [1, 1],  // CAN 1-1 BIH
-  5:  [1, 1],  // QAT 1-1 SUI
-  26: [4, 1],  // SUI 4-1 BIH
-  27: [6, 0],  // CAN 6-0 QAT
-  49: [3, 1],  // SUI 3-1 CAN   (Switzerland 3-1)
-  50: [3, 1],  // BIH 3-1 QAT
-  // ── Grupo C ──
-  6:  [1, 1],  // BRA 1-1 MAR
-  7:  [0, 1],  // HAI 0-1 SCO
-  31: [0, 1],  // SCO 0-1 MAR
-  32: [3, 0],  // BRA 3-0 HAI
-  51: [0, 3],  // SCO 0-3 BRA
-  52: [4, 2],  // MAR 4-2 HAI
-  // ── Grupo D ──
-  4:  [4, 1],  // USA 4-1 PAR
-  8:  [0, 2],  // AUS 0-2 TUR  → Türkiye 2-0 Australia
-  29: [0, 1],  // TUR 0-1 PAR
-  30: [2, 0],  // USA 2-0 AUS
-  59: [3, 2],  // TUR 3-2 USA
-  60: [0, 0],  // PAR 0-0 AUS
-  // ── Grupo E ──
-  9:  [7, 1],  // GER 7-1 CUR
-  11: [1, 0],  // CIV 1-0 ECU
-  34: [2, 1],  // GER 2-1 CIV
-  35: [0, 0],  // ECU 0-0 CUR
-  55: [0, 2],  // CUR 0-2 CIV
-  56: [2, 1],  // ECU 2-1 GER
-  // ── Grupo F ──
-  10: [2, 2],  // NED 2-2 JPN
-  12: [5, 1],  // SWE 5-1 TUN
-  33: [5, 1],  // NED 5-1 SWE
-  36: [0, 4],  // TUN 0-4 JPN
-  57: [1, 1],  // JPN 1-1 SWE
-  58: [1, 3],  // TUN 1-3 NED
-  // ── Grupo G ──
-  14: [1, 1],  // BEL 1-1 EGY
-  16: [2, 2],  // IRN 2-2 NZL
-  38: [0, 0],  // BEL 0-0 IRN
-  40: [1, 3],  // NZL 1-3 EGY  → Egypt 3-1 New Zealand
-  65: [1, 1],  // EGY 1-1 IRN
-  66: [1, 5],  // NZL 1-5 BEL
-  // ── Grupo H ──
-  13: [0, 0],  // ESP 0-0 CPV
-  15: [1, 1],  // KSA 1-1 URU
-  37: [4, 0],  // ESP 4-0 KSA
-  39: [2, 2],  // URU 2-2 CPV
-  63: [0, 0],  // CPV 0-0 KSA
-  64: [0, 1],  // URU 0-1 ESP
-  // ── Grupo I ──
-  17: [3, 1],  // FRA 3-1 SEN
-  18: [1, 4],  // IRQ 1-4 NOR  → Norway 4-1 Iraq
-  42: [3, 0],  // FRA 3-0 IRQ
-  43: [3, 2],  // NOR 3-2 SEN
-  61: [1, 4],  // NOR 4-1 FRA  → Norway 4 France 1
-  62: [5, 0],  // SEN 5-0 IRQ
-  // ── Grupo J ──
-  19: [3, 0],  // ARG 3-0 DZA
-  20: [3, 1],  // AUT 3-1 JOR
-  41: [2, 0],  // ARG 2-0 AUT
-  44: [1, 2],  // JOR 1-2 DZA
-  71: [3, 3],  // DZA 3-3 AUT
-  72: [1, 3],  // JOR 1-3 ARG
-  // ── Grupo K ──
-  21: [1, 1],  // POR 1-1 COD
-  24: [1, 3],  // UZB 1-3 COL
-  45: [5, 0],  // POR 5-0 UZB
-  48: [1, 0],  // COL 1-0 COD
-  69: [0, 0],  // COL 0-0 POR
-  70: [3, 1],  // COD 3-1 UZB
-  // ── Grupo L ──
-  22: [4, 2],  // ENG 4-2 CRO
-  23: [1, 0],  // GHA 1-0 PAN
-  46: [0, 0],  // ENG 0-0 GHA
-  47: [0, 1],  // PAN 0-1 CRO
-  67: [0, 2],  // PAN 0-2 ENG
-  68: [2, 1],  // CRO 2-1 GHA
+  1:[2,0],2:[2,1],25:[1,1],28:[1,0],53:[0,3],54:[1,0],
+  3:[1,1],5:[1,1],26:[4,1],27:[6,0],49:[3,1],50:[3,1],
+  6:[1,1],7:[0,1],31:[0,1],32:[3,0],51:[0,3],52:[4,2],
+  4:[4,1],8:[0,2],29:[0,1],30:[2,0],59:[3,2],60:[0,0],
+  9:[7,1],11:[1,0],34:[2,1],35:[0,0],55:[0,2],56:[2,1],
+  10:[2,2],12:[5,1],33:[5,1],36:[0,4],57:[1,1],58:[1,3],
+  14:[1,1],16:[2,2],38:[0,0],40:[1,3],65:[1,1],66:[1,5],
+  13:[0,0],15:[1,1],37:[4,0],39:[2,2],63:[0,0],64:[0,1],
+  17:[3,1],18:[1,4],42:[3,0],43:[3,2],61:[1,4],62:[5,0],
+  19:[3,0],20:[3,1],41:[2,0],44:[1,2],71:[3,3],72:[1,3],
+  21:[1,1],24:[1,3],45:[5,0],48:[1,0],69:[0,0],70:[3,1],
+  22:[4,2],23:[1,0],46:[0,0],47:[0,1],67:[0,2],68:[2,1],
 };
 
 // ─── STATUS BASADO EN RELOJ REAL ──────────────────────────────────────────────
@@ -265,10 +191,9 @@ const CARDS_BY_TEAM={};
 TEAM_CODES.forEach(c=>{CARDS_BY_TEAM[c]=ALL_CARDS.filter(x=>x.team===c);});
 
 // ─── API football-data.org ────────────────────────────────────────────────────
-const FD_KEY = '88d0f6ff95bd3fa29181f99f6bf88255';
+const FD_KEY = '32f17c44f4fbf5336e1dd9772725a117';
 const FD_URL = 'https://api.football-data.org/v4/competitions/WC/matches';
 
-// Mapeo nombre API → código interno
 const API_NAME_MAP = {
   'Mexico':'MEX','South Africa':'RSA','South Korea':'KOR','Czech Republic':'CZE','Czechia':'CZE',
   'Canada':'CAN','Bosnia and Herzegovina':'BIH','USA':'USA','United States':'USA','Paraguay':'PAR',
@@ -284,50 +209,54 @@ const API_NAME_MAP = {
 };
 
 async function fetchFromAPI() {
+  // Proxies CORS públicos que permiten headers personalizados
+  const proxies = [
+    `https://corsproxy.io/?url=${encodeURIComponent(FD_URL)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(FD_URL + '?X-Auth-Token=' + FD_KEY)}`,
+    `https://thingproxy.freeboard.io/fetch/${FD_URL}`,
+  ];
+  // Intento directo primero
   try {
-    // Intento directo (funciona si hay CORS en el plan o desde servidor)
     const r = await fetch(FD_URL, {
-      headers: { 'X-Auth-Token': FD_KEY }
+      headers: { 'X-Auth-Token': FD_KEY, 'Accept': 'application/json' },
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     return d.matches || [];
-  } catch {
-    // Fallback: proxy CORS público
+  } catch (_) {}
+  // Proxies como fallback
+  for (const url of proxies) {
     try {
-      const proxy = `https://corsproxy.io/?url=${encodeURIComponent(FD_URL)}`;
-      const r = await fetch(proxy, {
-        headers: { 'X-Auth-Token': FD_KEY }
+      const r = await fetch(url, {
+        headers: { 'X-Auth-Token': FD_KEY, 'Accept': 'application/json' },
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) continue;
       const d = await r.json();
-      return d.matches || [];
-    } catch {
-      return [];
-    }
+      if (d.matches) return d.matches;
+    } catch (_) {}
   }
+  return [];
 }
 
-// ─── HOOK PARTIDOS (reloj base + API real cada 60s) ──────────────────────────
+// ─── HOOK PARTIDOS ────────────────────────────────────────────────────────────
 function useMatches() {
   const [matches, setMatches] = useState(() => buildMatches(new Date()));
-  const [apiStatus, setApiStatus] = useState('connecting'); // 'connecting' | 'live' | 'offline'
+  const [apiStatus, setApiStatus] = useState('connecting');
 
-  // ── Reloj local: actualiza minuto/estado cada 30s ─────────────────────────
+  // Reloj local: actualiza minuto/estado cada 30s
   useEffect(() => {
     const tick = () => {
       const now = new Date();
       setMatches(prev => prev.map(m => {
         const { status, minute } = getMatchStatus(m.kickoffUTC, now);
-        let events = [...m.events];
+        let events = [...(m.events || [])];
         if (m.status === 'scheduled' && status === 'live') {
-          events = [{ text: `🏁 ¡PITAZO INICIAL! ${TEAMS[m.home]?.name} vs ${TEAMS[m.away]?.name}` }];
+          events = [{ text: `🏁 ¡PITAZO! ${TEAMS[m.home]?.name} vs ${TEAMS[m.away]?.name}` }];
         }
         if (m.status === 'live' && status === 'finished') {
           events = [...events, { text: `🏁 FIN · ${TEAMS[m.home]?.name} ${m.scoreHome}–${m.scoreAway} ${TEAMS[m.away]?.name}` }].slice(-5);
         }
-        // Solo actualiza minuto si no tenemos dato de API en vivo
-        return { ...m, status, minute: m.apiMinute ?? minute, events };
+        return { ...m, status, minute: m.apiMinute != null ? m.apiMinute : minute, events };
       }));
     };
     tick();
@@ -335,59 +264,54 @@ function useMatches() {
     return () => clearInterval(t);
   }, []);
 
-  // ── API real: poll cada 60s ───────────────────────────────────────────────
+  // API real: poll cada 60s
   useEffect(() => {
     let cancelled = false;
     async function poll() {
-      const apiMatches = await fetchFromAPI();
-      if (cancelled) return;
-
-      if (apiMatches.length === 0) {
-        setApiStatus('offline');
-        return;
-      }
-      setApiStatus('live');
-
-      setMatches(prev => prev.map(m => {
-        // Buscar partido equivalente en la respuesta de la API
-        const am = apiMatches.find(x => {
-          const h = API_NAME_MAP[x.homeTeam?.name] || x.homeTeam?.tla;
-          const a = API_NAME_MAP[x.awayTeam?.name] || x.awayTeam?.tla;
-          return h === m.home && a === m.away;
-        });
-        if (!am) return m;
-
-        const apiStatus = am.status; // SCHEDULED, IN_PLAY, PAUSED, FINISHED, etc.
-        const apiSH = am.score?.fullTime?.home ?? am.score?.halfTime?.home;
-        const apiSA = am.score?.fullTime?.away ?? am.score?.halfTime?.away;
-        const sh = (apiSH !== null && apiSH !== undefined) ? apiSH : m.scoreHome;
-        const sa = (apiSA !== null && apiSA !== undefined) ? apiSA : m.scoreAway;
-        const apiMin = am.minute ?? null;
-        let status = m.status;
-        if (apiStatus === 'IN_PLAY' || apiStatus === 'PAUSED') status = 'live';
-        else if (apiStatus === 'FINISHED') status = 'finished';
-        else if (apiStatus === 'SCHEDULED' || apiStatus === 'TIMED') status = 'scheduled';
-
-        // Detectar goles nuevos
-        let events = [...m.events];
-        if (sh > m.scoreHome) events.push({ text: `⚽ GOL de ${TEAMS[m.home]?.name}!` });
-        if (sa > m.scoreAway) events.push({ text: `⚽ GOL de ${TEAMS[m.away]?.name}!` });
-        if (status === 'finished' && m.status !== 'finished') {
-          events.push({ text: `🏁 FIN · ${TEAMS[m.home]?.name} ${sh}–${sa} ${TEAMS[m.away]?.name}` });
+      try {
+        const apiMatches = await fetchFromAPI();
+        if (cancelled) return;
+        if (!apiMatches || apiMatches.length === 0) {
+          setApiStatus('offline');
+          return;
         }
-
-        return {
-          ...m,
-          status,
-          scoreHome: sh ?? 0,
-          scoreAway: sa ?? 0,
-          apiMinute: apiMin,
-          minute: apiMin ?? m.minute,
-          events: events.slice(-5),
-        };
-      }));
+        setApiStatus('live');
+        setMatches(prev => prev.map(m => {
+          const am = apiMatches.find(x => {
+            const h = API_NAME_MAP[x.homeTeam?.name] || x.homeTeam?.tla;
+            const a = API_NAME_MAP[x.awayTeam?.name] || x.awayTeam?.tla;
+            return h === m.home && a === m.away;
+          });
+          if (!am) return m;
+          const apiSt = am.status;
+          const apiSH = am.score?.fullTime?.home ?? am.score?.halfTime?.home ?? null;
+          const apiSA = am.score?.fullTime?.away ?? am.score?.halfTime?.away ?? null;
+          const sh = apiSH !== null ? apiSH : m.scoreHome;
+          const sa = apiSA !== null ? apiSA : m.scoreAway;
+          const apiMin = am.minute ?? null;
+          let status = m.status;
+          if (apiSt === 'IN_PLAY' || apiSt === 'PAUSED') status = 'live';
+          else if (apiSt === 'FINISHED') status = 'finished';
+          else if (apiSt === 'SCHEDULED' || apiSt === 'TIMED') status = 'scheduled';
+          let events = [...(m.events || [])];
+          if (typeof sh === 'number' && sh > m.scoreHome) events.push({ text: `⚽ GOL de ${TEAMS[m.home]?.name}!` });
+          if (typeof sa === 'number' && sa > m.scoreAway) events.push({ text: `⚽ GOL de ${TEAMS[m.away]?.name}!` });
+          if (status === 'finished' && m.status !== 'finished') {
+            events.push({ text: `🏁 FIN · ${TEAMS[m.home]?.name} ${sh}–${sa} ${TEAMS[m.away]?.name}` });
+          }
+          return {
+            ...m, status,
+            scoreHome: typeof sh === 'number' ? sh : m.scoreHome,
+            scoreAway: typeof sa === 'number' ? sa : m.scoreAway,
+            apiMinute: apiMin,
+            minute: apiMin != null ? apiMin : m.minute,
+            events: events.slice(-5),
+          };
+        }));
+      } catch (e) {
+        if (!cancelled) setApiStatus('offline');
+      }
     }
-
     poll();
     const t = setInterval(poll, 60000);
     return () => { cancelled = true; clearInterval(t); };
@@ -550,6 +474,8 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
   const [searchQ,setSearchQ]=useState('');
   const totalOwned=Object.keys(collection).length;
   const pct=Math.round((totalOwned/900)*100);
+  const processing=useRef(false);
+  // price2000 y buyPack definidos al nivel del componente para que sean accesibles en todos los screens
   const price2000=currency==='COP'?'COP $2.000':currency==='USD'?'USD $0.50':'EUR €0.46';
 
   function pickCards(count){
@@ -570,15 +496,18 @@ function AlbumTab({collection,setCollection,balanceUSD,setBalanceUSD,balanceCoin
   }
   function addCards(cards){setCollection(prev=>{const n={...prev};cards.forEach(c=>{if(!n[c.id])n[c.id]=0;n[c.id]++;});return n;});}
   function buyPack(type){
+    if(processing.current)return;
     if(type==='money7'){
       if(balanceUSD<2000){triggerAlert('❌ Saldo insuficiente · Recarga en Cajero 💳');return;}
+      processing.current=true;
       setBalanceUSD(b=>b-2000);const cards=pickCards(7);addCards(cards);setOpeningPack(cards);
     }else{
       if(balanceCoins<500){triggerAlert('❌ Necesitas ⚡500 CyberCoins');return;}
+      processing.current=true;
       setBalanceCoins(c=>c-500);const cards=pickCards(3);addCards(cards);setOpeningPack(cards);
     }
+    setTimeout(()=>{processing.current=false;},2000);
   }
-
   if(screen==='shop')return(
     <div style={{padding:12}}>
       {openingPack&&<PackOpenModal cards={openingPack} onClose={()=>setOpeningPack(null)}/>}
@@ -729,17 +658,21 @@ function BetModal({match,balanceCoins,balanceUSD,setBalanceCoins,setBalanceUSD,s
   const [currency,setCurrency]=useState('COP');
   const [amount,setAmount]=useState('');
   const [outcome,setOutcome]=useState('home');
+  const processing=useRef(false);
   const pool=matchPools[match.id]||{home:0,draw:0,away:0,total:0};
   const quick={COP:['10000','25000','50000','100000'],USD:['3','6','12','25'],EUR:['3','6','11','23']};
   const opts=[{key:'home',label:`${TEAMS[match.home]?.emoji} ${TEAMS[match.home]?.name}`},{key:'draw',label:'🤝 Empate'},{key:'away',label:`${TEAMS[match.away]?.emoji} ${TEAMS[match.away]?.name}`}];
 
   function handleBet(){
+    if(processing.current)return;
     const n=Number(amount);
     if(!n||n<=0){triggerAlert('⚠️ Ingresa un monto válido');return;}
     if(balanceCoins<ENTRY_FEE){triggerAlert('⚡ Necesitas 150 CyberCoins');return;}
     const cop=Math.round(n/CURRENCY_RATES[currency]);
     if(cop>balanceUSD){triggerAlert('❌ Saldo insuficiente');return;}
-    setBalanceCoins(c=>c-ENTRY_FEE);setBalanceUSD(b=>b-cop);
+    processing.current=true;
+    setBalanceCoins(c=>c-ENTRY_FEE);
+    setBalanceUSD(b=>b-cop);
     setMatchPools(prev=>{const cur=prev[match.id]||{home:0,draw:0,away:0,total:0};
       return{...prev,[match.id]:{...cur,[outcome]:cur[outcome]+cop,total:cur.total+cop}};});
     setPlacedBets(prev=>[...prev,{id:Date.now(),matchId:match.id,home:match.home,away:match.away,
@@ -829,20 +762,13 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
   const [betModal,setBetModal]=useState(null);
   const [filter,setFilter]=useState('today');
   const {isOver,days,hours,minutes:cMin,seconds}=countdown;
-
-  // Fecha de hoy en UTC
-  const todayStr = new Date().toISOString().slice(0,10);
-
+  const todayStr=new Date().toISOString().slice(0,10);
   const liveCount=matches.filter(m=>m.status==='live').length;
   const finishedCount=matches.filter(m=>m.status==='finished').length;
-
   const visible=matches.filter(m=>{
     if(filter==='live')return m.status==='live';
     if(filter==='finished')return m.status==='finished';
-    if(filter==='today'){
-      const mDate=m.kickoffUTC.slice(0,10);
-      return mDate===todayStr||m.status==='live';
-    }
+    if(filter==='today'){const mDate=m.kickoffUTC.slice(0,10);return mDate===todayStr||m.status==='live';}
     return true;
   });
 
@@ -854,7 +780,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
         setPlacedBets={setPlacedBets} matchPools={matchPools} setMatchPools={setMatchPools}
         triggerAlert={triggerAlert} onClose={()=>setBetModal(null)} profile={profile}/>}
 
-      {/* Countdown si el mundial no arrancó */}
       {!isOver&&(
         <div style={{background:'linear-gradient(135deg,#0f172a,#1e1b4b)',border:'1px solid #4f46e5',
           borderRadius:14,padding:'16px 12px',marginBottom:14,textAlign:'center'}}>
@@ -870,7 +795,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
         </div>
       )}
 
-      {/* Banner mundial en curso */}
       {isOver&&(
         <div style={{background:'linear-gradient(135deg,#052e16,#0f172a)',border:'1px solid #10b981',
           borderRadius:12,padding:'10px 14px',marginBottom:10,
@@ -878,42 +802,32 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
           <div>
             <div style={{color:'#4ade80',fontWeight:900,fontSize:13}}>⚽ MUNDIAL 2026 EN CURSO</div>
             <div style={{color:'#6ee7b7',fontSize:9,marginTop:2}}>
-              {liveCount > 0
-                ? `🔴 ${liveCount} partido${liveCount!==1?'s':''} EN VIVO`
-                : `${finishedCount} partidos jugados`
-              }
+              {liveCount>0?`🔴 ${liveCount} partido${liveCount!==1?'s':''} EN VIVO`:`${finishedCount} partidos jugados`}
             </div>
           </div>
           <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}}>
-            <div style={{background:'#022c22',border:'1px solid #10b98150',borderRadius:8,
-              padding:'4px 10px',textAlign:'center'}}>
+            <div style={{background:'#022c22',border:'1px solid #10b98150',borderRadius:8,padding:'4px 10px',textAlign:'center'}}>
               <div style={{color:'#4ade80',fontSize:10,fontWeight:800}}>{finishedCount}/72</div>
               <div style={{color:'#064e3b',fontSize:8}}>jugados</div>
             </div>
             <div style={{
-              background: apiStatus==='live'?'#052e16': apiStatus==='offline'?'#1a0a0a':'#0f1a2e',
+              background:apiStatus==='live'?'#052e16':apiStatus==='offline'?'#1a0a0a':'#0f1a2e',
               border:`1px solid ${apiStatus==='live'?'#10b98150':apiStatus==='offline'?'#ef444450':'#6366f150'}`,
               borderRadius:6,padding:'2px 7px',display:'flex',alignItems:'center',gap:4}}>
               <span style={{width:5,height:5,borderRadius:'50%',display:'inline-block',
-                background: apiStatus==='live'?'#10b981': apiStatus==='offline'?'#ef4444':'#6366f1',
-                animation: apiStatus==='connecting'?'dot 1s infinite':undefined}}/>
+                background:apiStatus==='live'?'#10b981':apiStatus==='offline'?'#ef4444':'#6366f1',
+                animation:apiStatus==='connecting'?'dot 1s infinite':undefined}}/>
               <span style={{fontSize:8,fontWeight:700,
-                color: apiStatus==='live'?'#4ade80': apiStatus==='offline'?'#f87171':'#a5b4fc'}}>
-                {apiStatus==='live'?'API en vivo': apiStatus==='offline'?'Sin API · Reloj local':'Conectando...'}
+                color:apiStatus==='live'?'#4ade80':apiStatus==='offline'?'#f87171':'#a5b4fc'}}>
+                {apiStatus==='live'?'API en vivo':apiStatus==='offline'?'Sin API · Reloj local':'Conectando...'}
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Filtros */}
       <div style={{display:'flex',gap:6,marginBottom:12}}>
-        {[
-          ['live',  `🔴 Vivo${liveCount>0?` (${liveCount})`:''}` ],
-          ['today', '📅 Hoy'],
-          ['finished','✓ Jugados'],
-          ['all',   '🌍 Todos'],
-        ].map(([id,lbl])=>(
+        {[['live',`🔴 Vivo${liveCount>0?` (${liveCount})`:''}`],['today','📅 Hoy'],['finished','✓ Jugados'],['all','🌍 Todos']].map(([id,lbl])=>(
           <button key={id} onClick={()=>setFilter(id)} style={{flex:1,
             background:filter===id?'#6366f1':'#0f172a',border:`1px solid ${filter===id?'#818cf8':'#1e293b'}`,
             borderRadius:8,padding:'6px 0',color:filter===id?'#fff':'#64748b',fontSize:9,fontWeight:700,cursor:'pointer'}}>{lbl}</button>
@@ -934,13 +848,7 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
         const isLive=match.status==='live';
         const isFinished=match.status==='finished';
         const pool=matchPools[match.id]||{total:0};
-
-        // Mostrar minuto real dentro del partido (1er o 2do tiempo)
-        const displayMinute = match.minute <= 45
-          ? `${match.minute}'`
-          : match.minute <= 90
-            ? `${match.minute}' (2T)`
-            : `90'+`;
+        const displayMinute=match.minute<=45?`${match.minute}'`:match.minute<=90?`${match.minute}' (2T)`:`90'+`;
 
         return(
           <div key={match.id} style={{
@@ -948,7 +856,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
             border:`1px solid ${isLive?'#10b981':isFinished?'#1e293b33':'#1e293b'}`,
             borderRadius:14,padding:14,marginBottom:10,
             boxShadow:isLive?'0 0 18px #10b98120':'none'}}>
-            {/* Header */}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
               <div>
                 <span style={{fontSize:9,color:'#64748b',letterSpacing:1}}>{match.group}</span>
@@ -963,20 +870,10 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
                     {displayMinute}
                   </span>
                 )}
-                {isFinished&&(
-                  <span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99,fontWeight:700}}>
-                    ✓ FINAL
-                  </span>
-                )}
-                {!isLive&&!isFinished&&(
-                  <span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99}}>
-                    ⏰ {match.timeET} ET
-                  </span>
-                )}
+                {isFinished&&<span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99,fontWeight:700}}>✓ FINAL</span>}
+                {!isLive&&!isFinished&&<span style={{background:'#1e293b',color:'#64748b',fontSize:9,padding:'2px 8px',borderRadius:99}}>⏰ {match.timeET} ET</span>}
               </div>
             </div>
-
-            {/* Score */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{textAlign:'center',flex:1}}>
                 <div style={{fontSize:30}}>{ht.emoji}</div>
@@ -989,25 +886,15 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
                   </div>
                   :<div style={{fontSize:16,fontWeight:700,color:'#334155'}}>VS</div>
                 }
-                {isLive&&(
-                  <div style={{color:'#10b981',fontSize:8,marginTop:3,fontWeight:700}}>
-                    {match.minute<=45?'1ER TIEMPO':'2DO TIEMPO'}
-                  </div>
-                )}
-                {isFinished&&(
-                  <div style={{color:'#475569',fontSize:8,marginTop:3}}>PARTIDO FINALIZADO</div>
-                )}
-                {!isLive&&!isFinished&&(
-                  <div style={{color:'#475569',fontSize:8,marginTop:4}}>{match.stadium?.split('(')[0].trim()}</div>
-                )}
+                {isLive&&<div style={{color:'#10b981',fontSize:8,marginTop:3,fontWeight:700}}>{match.minute<=45?'1ER TIEMPO':'2DO TIEMPO'}</div>}
+                {isFinished&&<div style={{color:'#475569',fontSize:8,marginTop:3}}>PARTIDO FINALIZADO</div>}
+                {!isLive&&!isFinished&&<div style={{color:'#475569',fontSize:8,marginTop:4}}>{match.stadium?.split('(')[0].trim()}</div>}
               </div>
               <div style={{textAlign:'center',flex:1}}>
                 <div style={{fontSize:30}}>{at.emoji}</div>
                 <div style={{color:'#e2e8f0',fontSize:10,fontWeight:700,marginTop:3,maxWidth:80,margin:'3px auto 0',lineHeight:1.2}}>{at.name}</div>
               </div>
             </div>
-
-            {/* Pool */}
             {pool.total>0&&(
               <div style={{marginTop:10,background:'#0a0f1e',borderRadius:8,padding:'6px 10px',
                 display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -1015,8 +902,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
                 <span style={{color:'#fbbf24',fontSize:12,fontWeight:800}}>COP ${pool.total.toLocaleString()}</span>
               </div>
             )}
-
-            {/* Bet button — solo partidos activos o programados */}
             {isOver&&!isFinished&&(
               <button onClick={()=>setBetModal(match)} style={{width:'100%',marginTop:10,
                 background:isLive?'linear-gradient(135deg,#6366f1,#ec4899)':'#1e293b',
@@ -1027,8 +912,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
                 <span style={{background:'#00000040',borderRadius:6,padding:'2px 7px',color:'#fbbf24',fontSize:10,fontWeight:700}}>⚡150</span>
               </button>
             )}
-
-            {/* Eventos */}
             {match.events.slice(-3).map((ev,i)=>(
               <div key={i} style={{marginTop:6,background:'#0a0f1e',borderRadius:6,padding:'4px 8px',fontSize:10,color:'#94a3b8'}}>{ev.text}</div>
             ))}
@@ -1043,7 +926,6 @@ function LiveTab({countdown,matches,apiStatus,placedBets,setPlacedBets,balanceUS
 function CalendarTab({matches}){
   const grouped={};
   ALL_MATCHES_DATA.forEach(m=>{if(!grouped[m.dateLabel])grouped[m.dateLabel]=[];grouped[m.dateLabel].push(m);});
-
   return(
     <div style={{padding:12}}>
       <div style={{color:'#818cf8',fontSize:10,letterSpacing:2,marginBottom:12}}>📅 FIXTURE OFICIAL MUNDIAL 2026</div>
@@ -1051,9 +933,9 @@ function CalendarTab({matches}){
         <div key={date} style={{marginBottom:16}}>
           <div style={{color:'#6366f1',fontSize:11,fontWeight:700,marginBottom:8,borderLeft:'2px solid #6366f1',paddingLeft:8}}>{date}</div>
           {ms.map(m=>{
-            const matchState = matches.find(x=>x.id===m.id);
-            const isLive = matchState?.status==='live';
-            const isFinished = matchState?.status==='finished';
+            const matchState=matches.find(x=>x.id===m.id);
+            const isLive=matchState?.status==='live';
+            const isFinished=matchState?.status==='finished';
             const ht=TEAMS[m.home]||{name:m.home,emoji:'⚽'};
             const at=TEAMS[m.away]||{name:m.away,emoji:'⚽'};
             return(
@@ -1062,13 +944,13 @@ function CalendarTab({matches}){
                 borderRadius:12,padding:'10px 12px',marginBottom:8,display:'flex',alignItems:'center',gap:12}}>
                 <div style={{textAlign:'center',minWidth:44}}>
                   {isLive
-                    ? <div style={{color:'#10b981',fontSize:11,fontWeight:900,display:'flex',alignItems:'center',gap:3}}>
+                    ?<div style={{color:'#10b981',fontSize:11,fontWeight:900,display:'flex',alignItems:'center',gap:3}}>
                         <span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',background:'#10b981',animation:'dot 1s infinite'}}/>
                         {matchState.minute}'
                       </div>
-                    : isFinished
-                      ? <div style={{color:'#475569',fontSize:10,fontWeight:700}}>✓ FIN</div>
-                      : <div style={{color:'#6366f1',fontSize:13,fontWeight:800}}>{m.timeET}</div>
+                    :isFinished
+                      ?<div style={{color:'#475569',fontSize:10,fontWeight:700}}>✓ FIN</div>
+                      :<div style={{color:'#6366f1',fontSize:13,fontWeight:800}}>{m.timeET}</div>
                   }
                   <div style={{color:'#475569',fontSize:8}}>{m.group}</div>
                 </div>
@@ -1078,10 +960,8 @@ function CalendarTab({matches}){
                     <span style={{color:'#e2e8f0',fontSize:11,fontWeight:700}}>{ht.name}</span>
                   </div>
                   {(isLive||isFinished)
-                    ? <span style={{color:'#f1f5f9',fontSize:13,fontWeight:900,letterSpacing:1}}>
-                        {matchState.scoreHome}–{matchState.scoreAway}
-                      </span>
-                    : <span style={{color:'#475569',fontSize:10,fontWeight:700}}>VS</span>
+                    ?<span style={{color:'#f1f5f9',fontSize:13,fontWeight:900,letterSpacing:1}}>{matchState.scoreHome}–{matchState.scoreAway}</span>
+                    :<span style={{color:'#475569',fontSize:10,fontWeight:700}}>VS</span>
                   }
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{color:'#e2e8f0',fontSize:11,fontWeight:700}}>{at.name}</span>
@@ -1148,28 +1028,34 @@ function CashierTab({balanceUSD,setBalanceUSD,balanceCoins,setBalanceCoins,trigg
   const [method,setMethod]=useState('card');
   const [account,setAccount]=useState('');
   const [msg,setMsg]=useState(null);
+  const processing=useRef(false);
   const MIN_WITHDRAW=50000;
   const sym=CURRENCY_SYM[currency];
-
   function doDeposit(){
+    if(processing.current)return;
     const n=Number(amount);if(!n||n<=0){triggerAlert('⚠️ Monto inválido');return;}
+    processing.current=true;
     const cop=Math.round(n/CURRENCY_RATES[currency]);
+    const bonus=Math.round(cop*0.1);
     setBalanceUSD(b=>b+cop);
-    const bonus=Math.round(cop*0.1);setBalanceCoins(c=>c+bonus);
+    setBalanceCoins(c=>c+bonus);
     setMsg(`✅ +COP $${cop.toLocaleString()} · Bono +⚡${bonus} Coins`);
-    setTimeout(()=>setMsg(null),5000);
+    setAmount('');
+    setTimeout(()=>{setMsg(null);processing.current=false;},5000);
   }
   function doWithdraw(){
+    if(processing.current)return;
     const n=Number(amount);if(!n||n<=0){triggerAlert('⚠️ Monto inválido');return;}
     const cop=Math.round(n/CURRENCY_RATES[currency]);
     if(cop<MIN_WITHDRAW){triggerAlert(`❌ Mínimo de retiro: COP $${MIN_WITHDRAW.toLocaleString()}`);return;}
     if(cop>balanceUSD){triggerAlert('❌ Saldo insuficiente');return;}
     if(!account.trim()){triggerAlert('⚠️ Ingresa tu cuenta destino');return;}
+    processing.current=true;
     setBalanceUSD(b=>b-cop);
     setMsg(`💸 Retiro en proceso: COP $${cop.toLocaleString()} → ${account}`);
-    setTimeout(()=>setMsg(null),5000);
+    setAmount('');
+    setTimeout(()=>{setMsg(null);processing.current=false;},5000);
   }
-
   return(
     <div style={{padding:12}}>
       <div style={{display:'flex',gap:10,marginBottom:14}}>
@@ -1245,11 +1131,16 @@ function CashierTab({balanceUSD,setBalanceUSD,balanceCoins,setBalanceCoins,trigg
 // ─── BUY COINS MODAL ──────────────────────────────────────────────────────────
 function BuyCoinsModal({balanceUSD,setBalanceUSD,setBalanceCoins,triggerAlert,onClose}){
   const [currency,setCurrency]=useState('COP');
+  const processing=useRef(false);
   function getPrice(p){return currency==='COP'?`COP $${p.priceCOP.toLocaleString()}`:currency==='USD'?`USD $${p.priceUSD.toFixed(2)}`:`EUR €${p.priceEUR.toFixed(2)}`;}
   function buy(p){
+    if(processing.current)return;
     if(balanceUSD<p.priceCOP){triggerAlert('❌ Saldo insuficiente · Recarga en Cajero 💳');return;}
-    setBalanceUSD(b=>b-p.priceCOP);setBalanceCoins(c=>c+p.coins);
-    triggerAlert(`⚡ ¡+${p.coins.toLocaleString()} CyberCoins añadidos!`);onClose();
+    processing.current=true;
+    setBalanceUSD(b=>b-p.priceCOP);
+    setBalanceCoins(c=>c+p.coins);
+    triggerAlert(`⚡ ¡+${p.coins.toLocaleString()} CyberCoins añadidos!`);
+    onClose();
   }
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'#000000cc',zIndex:300,
@@ -1300,7 +1191,6 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
   const wr=total>0?Math.round((won/total)*100):0;
   const totalCards=Object.keys(collection).length;
   const banner=BANNERS.find(b=>b.id===(editing?draft.bannerId:profile.bannerId))||BANNERS[0];
-
   return(
     <div style={{paddingBottom:20}}>
       {showBuy&&<BuyCoinsModal balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
@@ -1375,10 +1265,8 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
               <div style={{color:'#818cf8',fontSize:11,fontWeight:700,letterSpacing:1}}>EDITAR PERFIL</div>
               <div style={{display:'flex',gap:8}}>
-                <button onClick={()=>{setProfile(draft);setEditing(false);}} style={{background:'#10b981',border:'none',borderRadius:8,
-                  padding:'6px 12px',color:'#fff',fontWeight:700,fontSize:11,cursor:'pointer'}}>✓ Guardar</button>
-                <button onClick={()=>setEditing(false)} style={{background:'#374151',border:'none',borderRadius:8,
-                  padding:'6px 12px',color:'#fff',fontWeight:700,fontSize:11,cursor:'pointer'}}>✕ Cancelar</button>
+                <button onClick={()=>{setProfile(draft);setEditing(false);}} style={{background:'#10b981',border:'none',borderRadius:8,padding:'6px 12px',color:'#fff',fontWeight:700,fontSize:11,cursor:'pointer'}}>✓ Guardar</button>
+                <button onClick={()=>setEditing(false)} style={{background:'#374151',border:'none',borderRadius:8,padding:'6px 12px',color:'#fff',fontWeight:700,fontSize:11,cursor:'pointer'}}>✕ Cancelar</button>
               </div>
             </div>
             <div style={{marginBottom:12}}>
@@ -1467,23 +1355,21 @@ export default function App(){
   });
 
   const countdown=useCountdown();
-  const {matches, apiStatus}=useMatches();
+  const {matches,apiStatus}=useMatches();
 
   const triggerAlert=useCallback(msg=>{
     if(toastTimer.current)clearTimeout(toastTimer.current);
     setToast(msg);toastTimer.current=setTimeout(()=>setToast(null),3500);
   },[]);
 
-  // Stats rápidas para el header
   const liveCount=matches.filter(m=>m.status==='live').length;
 
   return(
     <div style={{minHeight:'100vh',background:'#020817',color:'#f1f5f9',
       fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',maxWidth:480,margin:'0 auto',position:'relative'}}>
       <style>{`@keyframes dot{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
-      <Toast msg={toast}/>
 
-      {/* Header */}
+      <Toast msg={toast}/>
       <div style={{background:'#0f172a',borderBottom:'1px solid #1e293b',
         padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',
         position:'sticky',top:0,zIndex:100}}>
@@ -1513,8 +1399,32 @@ export default function App(){
           </div>
         </div>
       </div>
+      {/* ── AADS AD UNIT 2448388 ── */}
+      <div style={{position:'fixed',bottom:56,left:0,right:0,zIndex:200,textAlign:'center',pointerEvents:'none'}}>
+        <div style={{position:'relative',display:'inline-block',width:'100%',maxWidth:480,pointerEvents:'all'}}>
+          <input type="checkbox" id="aadsstickymrtfmwpo" hidden/>
+          <label htmlFor="aadsstickymrtfmwpo" style={{
+            position:'absolute',top:4,right:8,borderRadius:4,
+            background:'rgba(248,248,249,0.85)',padding:'2px 5px',
+            zIndex:201,cursor:'pointer',lineHeight:0,display:'inline-block'
+          }}>
+            <svg fill="#000" height="12px" width="12px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490">
+              <polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337"/>
+            </svg>
+          </label>
+          <div id="aads-frame">
+            <iframe
+              data-aa="2448388"
+              src="//acceptable.a-ads.com/2448388/?size=Adaptive"
+              style={{border:0,padding:0,width:'100%',height:'auto',overflow:'hidden',display:'block'}}
+              title="ad"
+            />
+          </div>
+          <style>{`#aadsstickymrtfmwpo:checked ~ #aads-frame { display: none; }`}</style>
+        </div>
+      </div>
+      {/* ── FIN AADS ── */}
 
-      {/* Content */}
       <div style={{paddingBottom:72}}>
         {activeTab==='live'&&<LiveTab
           countdown={countdown} matches={matches} apiStatus={apiStatus}
@@ -1540,8 +1450,6 @@ export default function App(){
           balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
           collection={collection} triggerAlert={triggerAlert}/>}
       </div>
-
-      {/* Bottom nav */}
       <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',
         width:'100%',maxWidth:480,background:'#0f172a',borderTop:'1px solid #1e293b',display:'flex',zIndex:100}}>
         {NAV.map(tab=>{
