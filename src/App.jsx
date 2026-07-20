@@ -157,11 +157,10 @@ const CURRENCY_SYM   = {COP:'COP $', USD:'USD $', EUR:'EUR €'};
 const ENTRY_FEE = 150;
 const NAV = [
   {id:'live',    label:'En Vivo', icon:'⚡'},
-  {id:'calendar',label:'Fixture', icon:'📅'},
+  {id:'earn',    label:'Ganar',   icon:'🎁'},
   {id:'album',   label:'Álbum',   icon:'🃏'},
   {id:'bets',    label:'Mis Bets',icon:'🎯'},
   {id:'cashier', label:'Cajero',  icon:'💳'},
-  {id:'earn',    label:'Ganar',   icon:'🎁'},
   {id:'profile', label:'Perfil',  icon:'👤'},
 ];
 const COIN_PACKS = [
@@ -1590,4 +1589,5 @@ export default function App(){
           <label htmlFor="aadsstickymrtfmwpo" style={{
             position:'absolute',top:4,right:8,borderRadius:4,
             background:'rgba(248,248,249,0.85)',padding:'2px 5px',
-            zIndex:201,cursor:'pointer',li
+            zIndex:201,cursor:'pointer',lineHeight:0,display:'inline-block'
+          }}
