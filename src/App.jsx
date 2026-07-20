@@ -161,6 +161,7 @@ const NAV = [
   {id:'album',   label:'Álbum',   icon:'🃏'},
   {id:'bets',    label:'Mis Bets',icon:'🎯'},
   {id:'cashier', label:'Cajero',  icon:'💳'},
+  {id:'earn',    label:'Ganar',   icon:'🎁'},
   {id:'profile', label:'Perfil',  icon:'👤'},
 ];
 const COIN_PACKS = [
@@ -1339,6 +1340,189 @@ function ProfileTab({profile,setProfile,placedBets,balanceUSD,setBalanceUSD,bala
   );
 }
 
+// ─── EARN TAB ─────────────────────────────────────────────────────────────────
+function EarnTab({balanceCoins,setBalanceCoins,triggerAlert}){
+  const [watching,setWatching]=useState(null); // null | 'watching' | 'done'
+  const [cooldowns,setCooldowns]=useState({});  // id -> timestamp cuando termina cooldown
+  const [timeLeft,setTimeLeft]=useState(0);
+  const timerRef=useRef(null);
+
+  const TASKS=[
+    {id:'ad1',  title:'Ver anuncio corto',   desc:'Mira 15 segundos de anuncio',  coins:50,  wait:15, icon:'📺'},
+    {id:'ad2',  title:'Ver anuncio largo',   desc:'Mira 30 segundos de anuncio',  coins:120, wait:30, icon:'🎬'},
+    {id:'ad3',  title:'Anuncio especial',    desc:'Mira 60 segundos y gana más',  coins:250, wait:60, icon:'⭐'},
+    {id:'daily',title:'Bono diario',         desc:'Reclama tu bono de cada día',  coins:200, wait:0,  icon:'🎁', daily:true},
+    {id:'share',title:'Compartir la app',    desc:'Copia el link y compártelo',   coins:100, wait:0,  icon:'🔗', share:true},
+  ];
+
+  // Tick del timer mientras se ve un anuncio
+  useEffect(()=>{
+    if(watching==='watching'&&timeLeft>0){
+      timerRef.current=setTimeout(()=>setTimeLeft(t=>t-1),1000);
+    } else if(watching==='watching'&&timeLeft===0){
+      setWatching('done');
+    }
+    return()=>clearTimeout(timerRef.current);
+  },[watching,timeLeft]);
+
+  function startWatch(task){
+    if(isCooldown(task.id))return;
+    setWatching({...task});
+    setTimeLeft(task.wait||15);
+  }
+
+  function claimReward(task){
+    setBalanceCoins(c=>c+task.coins);
+    setCooldowns(prev=>({...prev,[task.id]:Date.now()+86400000})); // 24h cooldown
+    triggerAlert(`⚡ +${task.coins} CyberCoins ganados!`);
+    setWatching(null);
+  }
+
+  function isCooldown(id){
+    const cd=cooldowns[id];
+    if(!cd)return false;
+    return Date.now()<cd;
+  }
+
+  function cooldownLabel(id){
+    const cd=cooldowns[id];
+    if(!cd||Date.now()>=cd)return null;
+    const left=Math.ceil((cd-Date.now())/3600000);
+    return `${left}h`;
+  }
+
+  const totalEarned=Object.values(cooldowns).filter(v=>Date.now()<v).length;
+
+  return(
+    <div style={{padding:12}}>
+      {/* Header */}
+      <div style={{background:'linear-gradient(135deg,#1e1b4b,#0f172a)',border:'2px solid #6366f1',
+        borderRadius:16,padding:16,marginBottom:16,textAlign:'center',boxShadow:'0 0 24px #6366f130'}}>
+        <div style={{fontSize:36,marginBottom:6}}>⚡</div>
+        <div style={{color:'#a5b4fc',fontSize:11,fontWeight:900,letterSpacing:2,marginBottom:4}}>GANAR CYBERCOINS</div>
+        <div style={{color:'#f1f5f9',fontSize:13,marginBottom:8}}>Mira anuncios y gana coins gratis</div>
+        <div style={{background:'#0f172a',borderRadius:10,padding:'8px 16px',display:'inline-block'}}>
+          <span style={{color:'#fbbf24',fontSize:20,fontWeight:900}}>⚡{balanceCoins.toLocaleString()}</span>
+          <span style={{color:'#475569',fontSize:10,marginLeft:6}}>coins disponibles</span>
+        </div>
+      </div>
+
+      {/* Modal de anuncio */}
+      {watching&&(
+        <div style={{position:'fixed',inset:0,background:'#000000ee',zIndex:400,
+          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}}>
+          <div style={{background:'#0f172a',border:'2px solid #6366f1',borderRadius:20,
+            padding:28,width:'100%',maxWidth:380,textAlign:'center'}}>
+            {watching==='done'?(
+              <>
+                <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+                <div style={{color:'#4ade80',fontSize:18,fontWeight:900,marginBottom:6}}>¡Listo!</div>
+                <div style={{color:'#94a3b8',fontSize:13,marginBottom:20}}>
+                  Ganaste <span style={{color:'#fbbf24',fontWeight:900}}>⚡{watching.coins} Coins</span>
+                </div>
+                <button onClick={()=>claimReward(watching)} style={{width:'100%',
+                  background:'linear-gradient(135deg,#6366f1,#ec4899)',border:'none',
+                  borderRadius:12,padding:14,color:'#fff',fontWeight:900,fontSize:16,cursor:'pointer'}}>
+                  🎁 RECLAMAR ⚡{watching.coins} COINS
+                </button>
+              </>
+            ):(
+              <>
+                <div style={{fontSize:40,marginBottom:12}}>{watching.icon}</div>
+                <div style={{color:'#a5b4fc',fontSize:11,letterSpacing:2,marginBottom:6}}>ANUNCIO EN CURSO</div>
+                <div style={{color:'#f1f5f9',fontSize:15,fontWeight:700,marginBottom:16}}>{watching.title}</div>
+
+                {/* Barra de progreso */}
+                <div style={{background:'#1e293b',borderRadius:99,height:10,marginBottom:8,overflow:'hidden'}}>
+                  <div style={{
+                    background:'linear-gradient(90deg,#6366f1,#ec4899)',
+                    height:'100%',borderRadius:99,
+                    width:`${(1-(timeLeft/(watching.wait||15)))*100}%`,
+                    transition:'width 1s linear'
+                  }}/>
+                </div>
+                <div style={{color:'#64748b',fontSize:12,marginBottom:16}}>
+                  Quedan <span style={{color:'#fbbf24',fontWeight:700}}>{timeLeft}s</span>
+                </div>
+
+                {/* Simulación del anuncio AADS */}
+                <div style={{background:'#1e293b',borderRadius:12,padding:16,marginBottom:16,
+                  border:'1px solid #334155',minHeight:80,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <iframe
+                    data-aa="2448388"
+                    src="//acceptable.a-ads.com/2448388/?size=Adaptive"
+                    style={{border:0,padding:0,width:'100%',height:80,overflow:'hidden'}}
+                    title="ad"
+                  />
+                </div>
+
+                <button onClick={()=>setWatching(null)} style={{background:'none',border:'none',
+                  color:'#475569',fontSize:12,cursor:'pointer',padding:6}}>Cancelar</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Lista de tareas */}
+      <div style={{color:'#64748b',fontSize:9,letterSpacing:2,marginBottom:10}}>FORMAS DE GANAR</div>
+      {TASKS.map(task=>{
+        const cd=isCooldown(task.id);
+        const cdLabel=cooldownLabel(task.id);
+        return(
+          <div key={task.id} style={{background:'#0f172a',border:`1px solid ${cd?'#1e293b':'#334155'}`,
+            borderRadius:14,padding:'14px 16px',marginBottom:10,
+            display:'flex',alignItems:'center',justifyContent:'space-between',
+            opacity:cd?0.5:1}}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <div style={{fontSize:28,lineHeight:1}}>{task.icon}</div>
+              <div>
+                <div style={{color:'#f1f5f9',fontSize:13,fontWeight:700}}>{task.title}</div>
+                <div style={{color:'#475569',fontSize:10,marginTop:2}}>{task.desc}</div>
+                <div style={{color:'#fbbf24',fontSize:11,fontWeight:800,marginTop:4}}>+⚡{task.coins} Coins</div>
+              </div>
+            </div>
+            <button
+              onClick={()=>{
+                if(cd)return;
+                if(task.share){
+                  navigator.clipboard?.writeText('https://a-world-cup.vercel.app').catch(()=>{});
+                  triggerAlert('🔗 Link copiado! Comparte y gana ⚡100');
+                  setCooldowns(prev=>({...prev,[task.id]:Date.now()+86400000}));
+                  setBalanceCoins(c=>c+task.coins);
+                  return;
+                }
+                if(task.daily){
+                  setBalanceCoins(c=>c+task.coins);
+                  setCooldowns(prev=>({...prev,[task.id]:Date.now()+86400000}));
+                  triggerAlert(`🎁 ¡Bono diario reclamado! +⚡${task.coins}`);
+                  return;
+                }
+                startWatch(task);
+              }}
+              style={{
+                background:cd?'#1e293b':'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                border:'none',borderRadius:10,padding:'8px 14px',
+                color:cd?'#475569':'#fff',fontSize:11,fontWeight:800,
+                cursor:cd?'not-allowed':'pointer',whiteSpace:'nowrap',minWidth:80,textAlign:'center'
+              }}>
+              {cd?`⏳ ${cdLabel}`:'Ver →'}
+            </button>
+          </div>
+        );
+      })}
+
+      {/* Info */}
+      <div style={{background:'#0f172a',border:'1px solid #1e293b',borderRadius:12,
+        padding:'10px 14px',marginTop:4,textAlign:'center'}}>
+        <div style={{color:'#334155',fontSize:10}}>
+          Los Coins ganados se pueden usar para apostar y abrir sobres del álbum
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App(){
   const [activeTab,setActiveTab]=useState('live');
@@ -1406,63 +1590,4 @@ export default function App(){
           <label htmlFor="aadsstickymrtfmwpo" style={{
             position:'absolute',top:4,right:8,borderRadius:4,
             background:'rgba(248,248,249,0.85)',padding:'2px 5px',
-            zIndex:201,cursor:'pointer',lineHeight:0,display:'inline-block'
-          }}>
-            <svg fill="#000" height="12px" width="12px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490">
-              <polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337"/>
-            </svg>
-          </label>
-          <div id="aads-frame">
-            <iframe
-              data-aa="2448388"
-              src="//acceptable.a-ads.com/2448388/?size=Adaptive"
-              style={{border:0,padding:0,width:'100%',height:'auto',overflow:'hidden',display:'block'}}
-              title="ad"
-            />
-          </div>
-          <style>{`#aadsstickymrtfmwpo:checked ~ #aads-frame { display: none; }`}</style>
-        </div>
-      </div>
-      {/* ── FIN AADS ── */}
-
-      <div style={{paddingBottom:72}}>
-        {activeTab==='live'&&<LiveTab
-          countdown={countdown} matches={matches} apiStatus={apiStatus}
-          placedBets={placedBets} setPlacedBets={setPlacedBets}
-          balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
-          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
-          matchPools={matchPools} setMatchPools={setMatchPools}
-          triggerAlert={triggerAlert} profile={profile}/>}
-        {activeTab==='calendar'&&<CalendarTab matches={matches}/>}
-        {activeTab==='album'&&<AlbumTab
-          collection={collection} setCollection={setCollection}
-          balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
-          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
-          triggerAlert={triggerAlert} currency={albumCurrency} setCurrency={setAlbumCurrency}/>}
-        {activeTab==='bets'&&<BetsTab placedBets={placedBets} matchPools={matchPools}/>}
-        {activeTab==='cashier'&&<CashierTab
-          balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
-          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
-          triggerAlert={triggerAlert}/>}
-        {activeTab==='profile'&&<ProfileTab
-          profile={profile} setProfile={setProfile}
-          placedBets={placedBets} balanceUSD={balanceUSD} setBalanceUSD={setBalanceUSD}
-          balanceCoins={balanceCoins} setBalanceCoins={setBalanceCoins}
-          collection={collection} triggerAlert={triggerAlert}/>}
-      </div>
-      <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',
-        width:'100%',maxWidth:480,background:'#0f172a',borderTop:'1px solid #1e293b',display:'flex',zIndex:100}}>
-        {NAV.map(tab=>{
-          const active=activeTab===tab.id;
-          return(<button key={tab.id} onClick={()=>setActiveTab(tab.id)}
-            style={{flex:1,background:'none',border:'none',padding:'8px 0',cursor:'pointer',
-              display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
-            <span style={{fontSize:16}}>{tab.icon}</span>
-            <span style={{fontSize:8,fontWeight:700,color:active?'#818cf8':'#475569'}}>{tab.label}</span>
-            {active&&<span style={{width:20,height:2,background:'#6366f1',borderRadius:1}}/>}
-          </button>);
-        })}
-      </div>
-    </div>
-  );
-}
+            zIndex:201,cursor:'pointer',li
